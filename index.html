@@ -1,0 +1,756 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PrepPaired — Find Your Case Partner</title>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital,wght@0,400;1,400&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+:root{
+  --bg:#0D0E12;--s1:#13141A;--s2:#1A1B24;
+  --pink:#FF1F5F;--pink2:#FF6699;--pink3:#FFB3CC;
+  --w:#B0B4C8;--ws:#E2E5F0;--g:#5A5C68;--b:rgba(200,203,216,0.08);
+}
+html{scroll-behavior:smooth;}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--w);overflow-x:hidden;cursor:default;}
+::selection{background:var(--pink);color:#fff;}
+
+/* CURSOR DOT */
+#cursor{position:fixed;width:8px;height:8px;background:var(--pink);border-radius:50%;pointer-events:none;z-index:9999;transform:translate(-50%,-50%);transition:transform 0.1s;box-shadow:0 0 12px var(--pink);}
+
+/* GRAIN */
+body::before{content:'';position:fixed;inset:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");pointer-events:none;z-index:9998;opacity:0.7;}
+
+/* NAV */
+nav{position:fixed;top:0;left:0;right:0;z-index:500;display:flex;align-items:center;justify-content:space-between;padding:1rem 5%;background:rgba(11,12,20,0.8);backdrop-filter:blur(24px);border-bottom:1px solid var(--b);}
+.logo{font-family:'Instrument Serif',serif;font-size:1.35rem;cursor:pointer;display:flex;align-items:center;gap:0.45rem;letter-spacing:-0.01em;color:var(--ws);}
+.logo-dot{width:7px;height:7px;background:var(--pink);border-radius:50%;animation:breathe 2s ease-in-out infinite;box-shadow:0 0 10px var(--pink);}
+@keyframes breathe{0%,100%{transform:scale(1);opacity:1}50%{transform:scale(1.4);opacity:0.7}}
+.nav-r{display:flex;align-items:center;gap:2rem;}
+.nav-link{font-size:0.8rem;color:var(--g);text-decoration:none;transition:color 0.2s;letter-spacing:0.02em;}
+.nav-link:hover{color:var(--w);}
+.nav-btn{background:var(--pink);color:#fff;font-size:0.8rem;font-weight:600;padding:0.55rem 1.4rem;border-radius:6px;cursor:pointer;border:none;font-family:'Inter',sans-serif;transition:all 0.2s;letter-spacing:0.02em;box-shadow:0 0 20px rgba(255,31,95,0.35);}
+.nav-btn:hover{transform:translateY(-1px);box-shadow:0 0 35px rgba(255,31,95,0.6);}
+
+/* VIEWS */
+#lv,#sv,#av{position:relative;z-index:1;}
+#sv,#av{display:none;}
+
+/* ═══ HERO ═══ */
+.hero{min-height:100vh;display:flex;flex-direction:column;justify-content:center;padding:8rem 5% 0;position:relative;overflow:hidden;}
+
+/* Mesh gradient bg */
+.hero-mesh{position:absolute;inset:0;background:radial-gradient(ellipse 80% 60% at 60% 40%,rgba(255,31,95,0.09) 0%,transparent 70%),radial-gradient(ellipse 50% 50% at 20% 80%,rgba(120,40,200,0.07) 0%,transparent 60%);pointer-events:none;}
+
+/* MARQUEE HEADLINE */
+.h-marquee-wrap{overflow:hidden;margin-bottom:0;}
+.h-marquee{display:flex;gap:0;white-space:nowrap;animation:marquee 20s linear infinite;}
+.h-marquee:hover{animation-play-state:paused;}
+.h-word{font-family:'Instrument Serif',serif;font-size:clamp(5rem,12vw,11rem);line-height:0.92;letter-spacing:-0.035em;color:var(--w);padding-right:0.3em;opacity:0.08;transition:opacity 0.3s;}
+.h-word.em{font-style:italic;color:var(--pink);opacity:1;text-shadow:0 0 80px rgba(255,31,95,0.4);}
+.h-word.solid{opacity:1;}
+@keyframes marquee{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+
+/* HERO GRID */
+.hero-grid{display:grid;grid-template-columns:1.2fr 0.8fr;gap:4rem;align-items:center;max-width:1300px;margin:0 auto;padding:3rem 0 0;width:100%;}
+
+.h-tag{display:inline-flex;align-items:center;gap:0.5rem;background:rgba(255,31,95,0.08);border:1px solid rgba(255,31,95,0.2);color:var(--pink2);font-size:0.65rem;font-weight:700;letter-spacing:0.16em;text-transform:uppercase;padding:0.38rem 0.9rem;border-radius:100px;margin-bottom:1.5rem;}
+.h-tag-pulse{width:5px;height:5px;background:var(--pink);border-radius:50%;box-shadow:0 0 6px var(--pink);animation:breathe 1.5s ease-in-out infinite;}
+
+.h-hl{font-family:'Instrument Serif',serif;font-size:clamp(2.6rem,4.5vw,4.4rem);line-height:1.06;letter-spacing:-0.025em;margin-bottom:1.4rem;color:var(--ws);}
+.h-hl em{font-style:italic;color:var(--pink);text-shadow:0 0 50px rgba(255,31,95,0.35);}
+.h-body{font-size:0.95rem;font-weight:300;color:var(--g);line-height:1.8;max-width:420px;margin-bottom:2.2rem;}
+.h-actions{display:flex;gap:0.8rem;align-items:center;margin-bottom:2.8rem;}
+.btn-p{background:var(--pink);color:#fff;font-size:0.88rem;font-weight:600;padding:0.85rem 2rem;border-radius:8px;cursor:pointer;border:none;font-family:'Inter',sans-serif;transition:all 0.2s;box-shadow:0 0 24px rgba(255,31,95,0.3);}
+.btn-p:hover{transform:translateY(-2px);box-shadow:0 0 45px rgba(255,31,95,0.6);}
+.btn-g{color:var(--g);font-size:0.82rem;font-weight:400;cursor:pointer;background:none;border:1px solid var(--b);border-radius:8px;padding:0.85rem 1.4rem;font-family:'Inter',sans-serif;transition:all 0.2s;}
+.btn-g:hover{color:var(--w);border-color:rgba(255,255,255,0.15);}
+
+/* STAT ROW */
+.stat-row{display:flex;gap:0;border:1px solid var(--b);border-radius:10px;overflow:hidden;background:var(--s1);}
+.sr-item{padding:0.9rem 1.4rem;border-right:1px solid var(--b);flex:1;text-align:center;}
+.sr-item:last-child{border-right:none;}
+.sr-val{font-family:'Instrument Serif',serif;font-size:1.5rem;color:var(--ws);}
+.sr-lbl{font-size:0.6rem;color:var(--g);text-transform:uppercase;letter-spacing:0.1em;margin-top:0.1rem;}
+
+/* HERO RIGHT: LIVE MATCH DEMO */
+.match-demo{position:relative;}
+.md-card{background:var(--s1);border:1px solid var(--b);border-radius:14px;padding:1.4rem;margin-bottom:0.6rem;position:relative;overflow:hidden;}
+.md-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--pink),transparent);animation:shimmer 2.5s ease-in-out infinite;}
+@keyframes shimmer{0%{opacity:0;transform:translateX(-100%)}50%{opacity:1}100%{opacity:0;transform:translateX(100%)}}
+.md-card:nth-child(3)::before{animation-delay:1.25s;}
+.md-row{display:flex;align-items:center;gap:0.8rem;margin-bottom:0.7rem;}
+.md-av{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'Instrument Serif',serif;color:#fff;font-size:0.95rem;flex-shrink:0;}
+.md-name{font-size:0.82rem;font-weight:600;color:var(--ws);}
+.md-loc{font-size:0.67rem;color:var(--g);}
+.md-pills{display:flex;flex-wrap:wrap;gap:0.3rem;}
+.md-pill{font-size:0.58rem;font-weight:600;padding:0.18rem 0.55rem;border-radius:100px;background:rgba(255,31,95,0.1);color:var(--pink2);border:1px solid rgba(255,31,95,0.18);letter-spacing:0.03em;}
+.md-pill.w{background:rgba(255,255,255,0.05);color:rgba(200,203,216,0.5);border-color:var(--b);}
+
+.md-connector{display:flex;align-items:center;justify-content:center;gap:0.7rem;padding:0.5rem 0;}
+.md-line{flex:1;height:1px;background:linear-gradient(90deg,transparent,rgba(255,31,95,0.4),transparent);}
+.md-badge{background:var(--pink);color:#fff;font-size:0.65rem;font-weight:800;padding:0.35rem 1rem;border-radius:100px;box-shadow:0 0 20px rgba(255,31,95,0.5);letter-spacing:0.06em;white-space:nowrap;animation:glow 2s ease-in-out infinite;}
+@keyframes glow{0%,100%{box-shadow:0 0 20px rgba(255,31,95,0.5)}50%{box-shadow:0 0 40px rgba(255,31,95,0.9)}}
+
+.md-notif{display:flex;align-items:center;gap:0.8rem;background:rgba(255,31,95,0.05);border:1px solid rgba(255,31,95,0.15);border-radius:10px;padding:0.8rem 1rem;margin-top:0.6rem;animation:slideIn 0.5s ease forwards;}
+@keyframes slideIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.md-notif-icon{width:28px;height:28px;background:rgba(255,31,95,0.15);border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:0.75rem;flex-shrink:0;}
+.md-notif-title{font-size:0.75rem;font-weight:600;color:var(--pink2);}
+.md-notif-sub{font-size:0.65rem;color:var(--g);margin-top:0.1rem;}
+
+/* TICKER */
+.ticker{border-top:1px solid var(--b);border-bottom:1px solid var(--b);padding:0.85rem 0;overflow:hidden;background:var(--s1);}
+.t-track{display:flex;animation:ticker 50s linear infinite;width:max-content;}
+.t-item{font-size:0.7rem;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:rgba(255,255,255,0.22);padding:0 2.5rem;white-space:nowrap;display:flex;align-items:center;gap:0.5rem;}
+.t-item::before{content:'✦';color:var(--pink);font-size:0.5rem;}
+@keyframes ticker{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+
+/* ═══ FULL-BLEED SECTIONS ═══ */
+
+/* FEATURE BENTO GRID */
+.bento-section{padding:8rem 5%;position:relative;}
+.bento-grid{display:grid;grid-template-columns:repeat(12,1fr);grid-template-rows:auto;gap:1.2rem;max-width:1300px;margin:3rem auto 0;}
+.bento{background:var(--s1);border:1px solid var(--b);border-radius:16px;padding:2rem;overflow:hidden;position:relative;transition:border-color 0.3s;}
+.bento:hover{border-color:rgba(255,31,95,0.25);}
+.bento::after{content:'';position:absolute;inset:0;background:radial-gradient(circle at var(--mx,50%) var(--my,50%),rgba(255,31,95,0.04) 0%,transparent 60%);pointer-events:none;opacity:0;transition:opacity 0.3s;}
+.bento:hover::after{opacity:1;}
+.b1{grid-column:span 5;grid-row:span 2;}
+.b2{grid-column:span 4;}
+.b3{grid-column:span 3;}
+.b4{grid-column:span 4;}
+.b5{grid-column:span 3;}
+.b6{grid-column:span 5;}
+.b-icon{font-size:1.6rem;margin-bottom:1rem;}
+.b-title{font-size:0.95rem;font-weight:700;margin-bottom:0.5rem;letter-spacing:-0.01em;color:var(--ws);}
+.b-desc{font-size:0.78rem;color:var(--g);line-height:1.65;font-weight:300;}
+.b-num{font-family:'Instrument Serif',serif;font-size:3.5rem;color:var(--ws);line-height:1;margin-bottom:0.3rem;text-shadow:0 0 20px rgba(200,203,216,0.2);}
+.b-tag{display:inline-block;font-size:0.6rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:var(--pink2);background:rgba(255,31,95,0.08);border:1px solid rgba(255,31,95,0.15);padding:0.22rem 0.6rem;border-radius:4px;margin-bottom:0.8rem;}
+
+/* BIG FORMAT BARS */
+.format-vis{display:flex;flex-direction:column;gap:0.5rem;margin-top:1rem;}
+.fv-row{display:flex;align-items:center;gap:0.7rem;}
+.fv-label{font-size:0.65rem;font-weight:600;color:var(--g);width:80px;text-align:right;flex-shrink:0;}
+.fv-bar-wrap{flex:1;height:8px;background:rgba(255,255,255,0.05);border-radius:4px;overflow:hidden;}
+.fv-bar{height:100%;border-radius:4px;background:linear-gradient(90deg,var(--pink),var(--pink2));box-shadow:0 0 8px rgba(255,31,95,0.4);}
+.fv-pct{font-size:0.65rem;color:var(--pink2);width:32px;flex-shrink:0;}
+
+/* DIAGONAL DIVIDER */
+.diag{width:100%;height:100px;overflow:hidden;margin-top:-1px;}
+.diag svg{display:block;width:100%;height:100%;}
+
+/* PROCESS SECTION — FULL PINK BG */
+.process-section{background:var(--pink);padding:8rem 5%;position:relative;overflow:hidden;}
+.process-section::before{content:'';position:absolute;top:-200px;right:-200px;width:600px;height:600px;background:rgba(255,255,255,0.06);border-radius:50%;}
+.process-inner{max-width:1300px;margin:0 auto;position:relative;z-index:2;}
+.process-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:3rem;margin-top:4rem;}
+.proc-card{background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);border-radius:16px;padding:2.5rem 2rem;backdrop-filter:blur(10px);}
+.proc-num{font-family:'Instrument Serif',serif;font-size:5rem;color:rgba(255,255,255,0.15);line-height:1;margin-bottom:1rem;letter-spacing:-0.04em;}
+.proc-title{font-size:1rem;font-weight:700;color:#fff;margin-bottom:0.6rem;}
+.proc-desc{font-size:0.82rem;color:var(--w);line-height:1.7;font-weight:300;}
+.process-eyebrow{font-size:0.68rem;font-weight:700;letter-spacing:0.18em;text-transform:uppercase;color:rgba(200,203,216,0.5);margin-bottom:0.8rem;}
+.process-title{font-family:'Instrument Serif',serif;font-size:clamp(2.5rem,5vw,4.5rem);color:#fff;letter-spacing:-0.025em;line-height:1.05;}
+
+/* FIRMS WALL */
+.firms-section{padding:8rem 5%;border-top:1px solid var(--b);}
+.firms-inner{max-width:1300px;margin:0 auto;}
+.firms-wall{margin-top:3rem;display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:1px;background:var(--b);border:1px solid var(--b);border-radius:16px;overflow:hidden;}
+.fw-cell{background:var(--bg);padding:1.2rem 1rem;text-align:center;transition:background 0.2s;position:relative;}
+.fw-cell:hover{background:var(--s1);}
+.fw-name{font-size:0.8rem;font-weight:600;color:var(--w);}
+.fw-fmt{font-size:0.6rem;color:rgba(255,31,95,0.7);margin-top:0.2rem;font-weight:500;}
+.fw-cell.mbb{background:rgba(255,31,95,0.06);}
+.fw-cell.mbb .fw-name{color:var(--ws);}
+
+/* QUOTE MARQUEE */
+.q-section{padding:6rem 0;overflow:hidden;border-top:1px solid var(--b);}
+.q-track{display:flex;gap:2rem;animation:qscroll 40s linear infinite;width:max-content;padding:0 1rem;}
+.q-track:hover{animation-play-state:paused;}
+.q-card{background:var(--s1);border:1px solid var(--b);border-radius:14px;padding:2rem 2.2rem;width:380px;flex-shrink:0;transition:border-color 0.3s;}
+.q-card:hover{border-color:rgba(255,31,95,0.3);}
+.q-text{font-size:0.88rem;color:var(--w);line-height:1.75;margin-bottom:1.2rem;font-weight:300;}
+.q-school{font-size:0.65rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:rgba(200,203,216,0.2);}
+@keyframes qscroll{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+
+/* BIG CTA */
+.cta-section{padding:10rem 5%;text-align:center;position:relative;overflow:hidden;}
+.cta-glow{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:800px;height:400px;background:radial-gradient(ellipse,rgba(255,31,95,0.1) 0%,transparent 70%);pointer-events:none;}
+.cta-super{font-family:'Instrument Serif',serif;font-size:clamp(4rem,10vw,9rem);line-height:0.95;letter-spacing:-0.035em;margin-bottom:2rem;position:relative;}
+.cta-super em{font-style:italic;color:var(--pink);text-shadow:0 0 80px rgba(255,31,95,0.4);}
+.cta-sub{font-size:1rem;color:var(--g);font-weight:300;margin-bottom:3rem;position:relative;}
+
+footer{border-top:1px solid var(--b);padding:2rem 5%;display:flex;justify-content:space-between;align-items:center;}
+.f-logo{font-family:'Instrument Serif',serif;font-size:1.1rem;display:flex;align-items:center;gap:0.4rem;color:var(--ws);}
+.f-dot{width:6px;height:6px;background:var(--pink);border-radius:50%;box-shadow:0 0 8px var(--pink);}
+.f-r{font-size:0.7rem;color:rgba(200,203,216,0.18);}
+
+/* EYEBROW SHARED */
+.ey{font-size:0.65rem;font-weight:700;letter-spacing:0.16em;text-transform:uppercase;color:var(--pink);display:flex;align-items:center;gap:0.5rem;margin-bottom:0.8rem;}
+.ey::before{content:'';width:18px;height:1px;background:var(--pink);}
+.sec-title{font-family:'Instrument Serif',serif;font-size:clamp(2.2rem,4vw,3.5rem);letter-spacing:-0.025em;line-height:1.1;color:var(--ws);}
+
+/* ═══ SIGNUP ═══ */
+#sv{min-height:100vh;padding:8rem 5% 4rem;max-width:820px;margin:0 auto;}
+.back{display:inline-flex;align-items:center;gap:0.4rem;font-size:0.78rem;color:var(--g);cursor:pointer;border:1px solid var(--b);background:transparent;padding:0.5rem 1rem;border-radius:6px;font-family:'Inter',sans-serif;margin-bottom:2.5rem;transition:all 0.2s;}
+.back:hover{color:var(--w);border-color:rgba(255,255,255,0.15);}
+.ft{font-family:'Instrument Serif',serif;font-size:clamp(2rem,4vw,3rem);letter-spacing:-0.025em;line-height:1.1;margin-bottom:0.5rem;color:var(--ws);}
+.ft em{font-style:italic;color:var(--pink);}
+.fs{font-size:0.88rem;color:var(--g);font-weight:300;margin-bottom:3rem;}
+.fb{margin-bottom:2.5rem;}
+.fbl{display:block;font-size:0.6rem;font-weight:700;letter-spacing:0.13em;text-transform:uppercase;color:var(--pink);padding-bottom:0.7rem;border-bottom:1px solid rgba(255,31,95,0.18);margin-bottom:1.5rem;}
+.ff{margin-bottom:1.2rem;}
+.fl{display:block;font-size:0.66rem;font-weight:600;color:rgba(200,203,216,0.38);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:0.4rem;}
+.fl sup{color:var(--pink);}
+.fh{font-size:0.68rem;color:rgba(200,203,216,0.2);margin-top:0.3rem;}
+input[type=text],input[type=email],select{width:100%;padding:0.78rem 1rem;border:1px solid var(--b);border-radius:8px;font-family:'Inter',sans-serif;font-size:0.88rem;color:var(--ws);background:var(--s1);-webkit-appearance:none;appearance:none;transition:border-color 0.2s;}
+input:focus,select:focus{outline:none;border-color:rgba(255,31,95,0.45);background:var(--s2);}
+input::placeholder{color:rgba(200,203,216,0.18);}
+select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23555'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 1rem center;cursor:pointer;}
+select option{background:#161320;}
+.tcf{display:grid;grid-template-columns:1fr 1fr;gap:1rem;}
+.pg{display:flex;flex-wrap:wrap;gap:0.45rem;margin-top:0.45rem;}
+.pp{padding:0.42rem 1rem;border-radius:100px;border:1px solid var(--b);background:transparent;font-size:0.76rem;font-weight:500;color:rgba(200,203,216,0.4);cursor:pointer;font-family:'Inter',sans-serif;transition:all 0.15s;}
+.pp:hover{border-color:rgba(255,31,95,0.35);color:var(--w);}
+.pp.on{background:rgba(255,31,95,0.14);border-color:rgba(255,31,95,0.45);color:var(--pink2);}
+.cf{display:none;margin-top:1.1rem;padding:1.2rem 1.4rem;background:rgba(255,31,95,0.04);border-radius:10px;border:1px solid rgba(255,31,95,0.12);}
+.cf.show{display:block;}
+.cfl{font-size:0.6rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:var(--pink);margin-bottom:0.8rem;}
+.ag{display:grid;grid-template-columns:repeat(7,1fr);gap:0.35rem;}
+.ah{font-size:0.58rem;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;color:rgba(200,203,216,0.2);text-align:center;padding-bottom:0.35rem;}
+.ab{width:100%;padding:0.32rem 0;border-radius:4px;border:1px solid var(--b);background:transparent;font-size:0.58rem;color:var(--g);cursor:pointer;text-align:center;display:block;font-family:'Inter',sans-serif;margin-bottom:0.2rem;transition:all 0.12s;}
+.ab:hover{border-color:rgba(255,31,95,0.3);}
+.ab.on{background:rgba(255,31,95,0.18);border-color:rgba(255,31,95,0.4);color:var(--pink2);font-weight:600;}
+.err{background:rgba(220,38,38,0.08);border:1px solid rgba(220,38,38,0.25);border-radius:8px;padding:0.8rem 1.1rem;color:#FCA5A5;font-size:0.8rem;margin-bottom:1rem;display:none;}
+.sub{width:100%;background:var(--pink);color:#fff;border:none;font-family:'Inter',sans-serif;font-size:0.96rem;font-weight:700;padding:1rem 2rem;border-radius:8px;cursor:pointer;transition:all 0.2s;box-shadow:0 0 24px rgba(255,31,95,0.3);letter-spacing:0.02em;}
+.sub:hover{background:#E8185A;box-shadow:0 0 45px rgba(255,31,95,0.55);transform:translateY(-1px);}
+.ssc{display:none;text-align:center;padding:5rem 2rem;}
+.ssi{width:72px;height:72px;background:rgba(255,31,95,0.08);border:1px solid rgba(255,31,95,0.2);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 1.5rem;font-size:1.8rem;box-shadow:0 0 30px rgba(255,31,95,0.15);}
+.sst{font-family:'Instrument Serif',serif;font-size:2.8rem;margin-bottom:1rem;}
+.sst em{font-style:italic;color:var(--pink);}
+.sss{font-size:0.9rem;color:var(--g);font-weight:300;line-height:1.8;max-width:400px;margin:0 auto 2.5rem;}
+
+/* ═══ ADMIN ═══ */
+#av{padding:8rem 5% 4rem;max-width:1200px;margin:0 auto;}
+.at{font-family:'Instrument Serif',serif;font-size:2.4rem;margin-bottom:0.4rem;color:var(--ws);}
+.as_{font-size:0.85rem;color:var(--g);margin-bottom:2.5rem;}
+.asg{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin-bottom:2rem;}
+.asc{background:var(--s1);border:1px solid var(--b);border-radius:10px;padding:1.2rem 1.5rem;}
+.asl{font-size:0.6rem;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:var(--g);margin-bottom:0.3rem;}
+.asv{font-family:'Instrument Serif',serif;font-size:2.2rem;}
+.aa{display:flex;gap:0.8rem;margin-bottom:2rem;flex-wrap:wrap;}
+.ab2{background:var(--pink);color:#fff;border:none;font-family:'Inter',sans-serif;font-size:0.8rem;font-weight:600;padding:0.6rem 1.3rem;border-radius:6px;cursor:pointer;transition:all 0.2s;box-shadow:0 0 16px rgba(255,31,95,0.2);}
+.ab2:hover{background:#E8185A;}
+.ab2.o{background:transparent;color:var(--w);border:1px solid var(--b);box-shadow:none;}
+.ab2.o:hover{border-color:rgba(255,31,95,0.3);color:var(--pink2);}
+.mb{background:var(--s1);border:1px solid var(--b);border-radius:12px;padding:1.5rem 2rem;margin-bottom:2rem;display:none;}
+.mbt{font-family:'Instrument Serif',serif;font-size:1.5rem;margin-bottom:1.2rem;}
+.mp{display:flex;align-items:center;gap:1.1rem;padding:0.9rem 1.1rem;background:rgba(255,31,95,0.04);border-radius:8px;margin-bottom:0.4rem;border:1px solid rgba(255,31,95,0.12);}
+.pa{width:35px;height:35px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'Instrument Serif',serif;font-size:0.85rem;color:#fff;flex-shrink:0;}
+.pi{flex:1;}
+.pn{font-size:0.82rem;font-weight:600;}
+.pd_{font-size:0.68rem;color:var(--g);margin-top:0.1rem;}
+.parr{color:var(--pink);font-size:1.1rem;}
+.psc{font-size:0.68rem;font-weight:700;color:var(--pink2);background:rgba(255,31,95,0.08);padding:0.22rem 0.55rem;border-radius:4px;border:1px solid rgba(255,31,95,0.15);}
+.pr{font-size:0.68rem;color:var(--g);margin:0.15rem 0 0.7rem 0.3rem;}
+.tw{background:var(--s1);border:1px solid var(--b);border-radius:12px;overflow:hidden;}
+table{width:100%;border-collapse:collapse;}
+th{font-size:0.58rem;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;color:var(--g);padding:0.85rem 1.1rem;text-align:left;border-bottom:1px solid var(--b);background:var(--s2);}
+td{font-size:0.8rem;color:var(--w);padding:0.8rem 1.1rem;border-bottom:1px solid var(--b);}
+tr:last-child td{border-bottom:none;}
+tr:hover td{background:rgba(255,31,95,0.03);}
+.bw{display:inline-block;padding:0.18rem 0.55rem;border-radius:100px;font-size:0.62rem;font-weight:600;}
+.bww{background:rgba(234,179,8,0.08);color:#FCD34D;border:1px solid rgba(234,179,8,0.18);}
+.bwm{background:rgba(255,31,95,0.08);color:var(--pink2);border:1px solid rgba(255,31,95,0.18);}
+
+.lo{display:none;position:fixed;inset:0;background:rgba(7,6,10,0.94);z-index:600;flex-direction:column;align-items:center;justify-content:center;gap:1rem;}
+.lo.on{display:flex;}
+.sp{width:36px;height:36px;border:2px solid var(--b);border-top-color:var(--pink);border-radius:50%;animation:spin 0.7s linear infinite;}
+.lt{font-family:'Instrument Serif',serif;font-size:1.4rem;}
+.ls{font-size:0.8rem;color:var(--g);}
+@keyframes fadeUp{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}
+@keyframes spin{to{transform:rotate(360deg)}}
+.rv{opacity:0;transform:translateY(22px);transition:opacity 0.7s ease,transform 0.7s ease;}
+.rv.vi{opacity:1;transform:translateY(0);}
+
+@media(max-width:900px){
+  .hero-grid,.b1,.b2,.b3,.b4,.b5,.b6,.process-grid,.tcf,.asg{grid-template-columns:1fr;}
+  .bento-grid{display:flex;flex-direction:column;}
+  .ag{grid-template-columns:repeat(4,1fr);}
+  .firms-wall{grid-template-columns:repeat(3,1fr);}
+  .cta-super{font-size:clamp(3rem,8vw,6rem);}
+  .h-marquee{animation:none;}
+}
+</style>
+</head>
+<body>
+
+<div id="cursor"></div>
+
+<div class="lo" id="lo">
+  <div class="sp"></div>
+  <div class="lt">Finding your match…</div>
+  <div class="ls">AI is scoring compatibility across all profiles</div>
+</div>
+
+<nav>
+  <div class="logo" onclick="showL()"><div class="logo-dot"></div>PrepPaired</div>
+  <div class="nav-r">
+    <a class="nav-link" href="#" onclick="document.getElementById('how').scrollIntoView({behavior:'smooth'});return false">How it works</a>
+    <a class="nav-link" href="#" onclick="document.getElementById('firms').scrollIntoView({behavior:'smooth'});return false">Firms</a>
+    <button class="nav-btn" onclick="showS()">Get matched →</button>
+  </div>
+</nav>
+
+<!-- ══════════════════════ LANDING ══════════════════════ -->
+<div id="lv">
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-mesh"></div>
+
+  <!-- FULL-VIEWPORT OPENING STATEMENT -->
+  <div style="min-height:100vh;display:flex;flex-direction:column;justify-content:center;align-items:flex-start;max-width:1300px;margin:0 auto;width:100%;padding-bottom:4rem;position:relative;z-index:2;">
+    <div class="h-tag" style="margin-bottom:2rem;"><span class="h-tag-pulse"></span>AI-Matched · Free · All Top Firms</div>
+    <h1 style="font-family:'Instrument Serif',serif;font-size:clamp(4.5rem,10vw,10rem);line-height:0.97;letter-spacing:-0.04em;margin-bottom:2.5rem;color:#E2E5F0;">
+      Stop settling.<br>Find your<br><em style="font-style:italic;color:var(--pink);text-shadow:0 0 80px rgba(255,31,95,0.5);">perfect</em><br>partner.
+    </h1>
+    <p style="font-size:1rem;font-weight:300;color:var(--g);line-height:1.8;max-width:460px;margin-bottom:2.5rem;">PrepPaired matches you on level, firm, format, language and timezone — not just who replied first.</p>
+    <div style="display:flex;gap:1rem;align-items:center;">
+      <button class="btn-p" onclick="showS()">Get matched now →</button>
+      <button class="btn-g" onclick="document.getElementById('how').scrollIntoView({behavior:'smooth'})">How it works ↓</button>
+    </div>
+    <!-- scroll indicator -->
+    <div style="position:absolute;bottom:2rem;left:0;display:flex;align-items:center;gap:0.6rem;opacity:0;animation:fadeUp 0.6s ease forwards 1.2s;">
+      <div style="width:1px;height:40px;background:linear-gradient(to bottom,transparent,var(--g));"></div>
+      <span style="font-size:0.62rem;letter-spacing:0.14em;text-transform:uppercase;color:rgba(200,203,216,0.2);">Scroll to explore</span>
+    </div>
+  </div>
+
+  <!-- SECOND SCREEN: detail grid -->
+  <div class="hero-grid" style="padding-top:6rem;border-top:1px solid var(--b);">
+    <div>
+      <div class="h-tag" style="margin-bottom:1.2rem;"><span class="h-tag-pulse"></span>Why PrepPaired</div>
+      <h2 class="h-hl" style="font-size:clamp(2rem,3.5vw,3.2rem);">The partner you find<br>changes everything.</h2>
+      <p class="h-body">Stop practicing with whoever's available. Get matched on every dimension that actually matters for your offer.</p>
+      <div class="h-actions">
+        <button class="btn-p" onclick="showS()">Get matched now →</button>
+        <button class="btn-g" onclick="document.getElementById('how').scrollIntoView({behavior:'smooth'})">How it works ↓</button>
+      </div>
+      <div class="stat-row">
+        <div class="sr-item"><div class="sr-val">20+</div><div class="sr-lbl">Firms</div></div>
+        <div class="sr-item"><div class="sr-val">6</div><div class="sr-lbl">Languages</div></div>
+        <div class="sr-item"><div class="sr-val">4</div><div class="sr-lbl">Levels</div></div>
+        <div class="sr-item"><div class="sr-val" style="font-size:1.1rem;padding-top:0.2rem">Free</div><div class="sr-lbl">Always</div></div>
+      </div>
+    </div>
+
+    <!-- LIVE MATCH DEMO -->
+    <div class="match-demo">
+      <!-- COMPATIBILITY BREAKDOWN -->
+      <div class="md-card" style="margin-bottom:0.6rem;">
+        <div style="font-size:0.6rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:var(--g);margin-bottom:1.2rem;display:flex;justify-content:space-between;align-items:center;">
+          <span>Compatibility breakdown</span>
+          <span style="color:var(--pink2);font-size:0.7rem">Sample match</span>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:0.7rem;">
+          <div style="display:flex;align-items:center;gap:0.8rem;">
+            <span style="font-size:0.65rem;color:var(--g);width:70px;text-align:right;flex-shrink:0;">Level</span>
+            <div style="flex:1;height:6px;background:rgba(255,255,255,0.05);border-radius:3px;overflow:hidden;"><div style="width:100%;height:100%;background:linear-gradient(90deg,var(--pink),var(--pink2));border-radius:3px;"></div></div>
+            <span style="font-size:0.65rem;color:var(--pink2);width:28px;">100%</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:0.8rem;">
+            <span style="font-size:0.65rem;color:var(--g);width:70px;text-align:right;flex-shrink:0;">Format</span>
+            <div style="flex:1;height:6px;background:rgba(255,255,255,0.05);border-radius:3px;overflow:hidden;"><div style="width:100%;height:100%;background:linear-gradient(90deg,var(--pink),var(--pink2));border-radius:3px;"></div></div>
+            <span style="font-size:0.65rem;color:var(--pink2);width:28px;">100%</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:0.8rem;">
+            <span style="font-size:0.65rem;color:var(--g);width:70px;text-align:right;flex-shrink:0;">Language</span>
+            <div style="flex:1;height:6px;background:rgba(255,255,255,0.05);border-radius:3px;overflow:hidden;"><div style="width:88%;height:100%;background:linear-gradient(90deg,var(--pink),var(--pink2));border-radius:3px;"></div></div>
+            <span style="font-size:0.65rem;color:var(--pink2);width:28px;">88%</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:0.8rem;">
+            <span style="font-size:0.65rem;color:var(--g);width:70px;text-align:right;flex-shrink:0;">Firms</span>
+            <div style="flex:1;height:6px;background:rgba(255,255,255,0.05);border-radius:3px;overflow:hidden;"><div style="width:75%;height:100%;background:linear-gradient(90deg,var(--pink),var(--pink2));border-radius:3px;"></div></div>
+            <span style="font-size:0.65rem;color:var(--pink2);width:28px;">75%</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:0.8rem;">
+            <span style="font-size:0.65rem;color:var(--g);width:70px;text-align:right;flex-shrink:0;">Timezone</span>
+            <div style="flex:1;height:6px;background:rgba(255,255,255,0.05);border-radius:3px;overflow:hidden;"><div style="width:94%;height:100%;background:linear-gradient(90deg,var(--pink),var(--pink2));border-radius:3px;"></div></div>
+            <span style="font-size:0.65rem;color:var(--pink2);width:28px;">94%</span>
+          </div>
+        </div>
+      </div>
+      <div class="md-connector">
+        <div class="md-line"></div>
+        <div class="md-badge">96% MATCH</div>
+        <div class="md-line"></div>
+      </div>
+      <!-- PROFILE CARDS: no names, just attributes -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.6rem;">
+        <div class="md-card" style="margin-bottom:0;">
+          <div style="font-size:0.6rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--g);margin-bottom:0.8rem;">Profile A</div>
+          <div class="md-pills">
+            <span class="md-pill">Intermediate</span>
+            <span class="md-pill">McKinsey</span>
+            <span class="md-pill w">Interviewer-led</span>
+            <span class="md-pill w">French</span>
+            <span class="md-pill w">Evenings</span>
+          </div>
+        </div>
+        <div class="md-card" style="margin-bottom:0;">
+          <div style="font-size:0.6rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--g);margin-bottom:0.8rem;">Profile B</div>
+          <div class="md-pills">
+            <span class="md-pill">Intermediate</span>
+            <span class="md-pill">McKinsey</span>
+            <span class="md-pill w">Interviewer-led</span>
+            <span class="md-pill w">English</span>
+            <span class="md-pill w">Evenings</span>
+          </div>
+        </div>
+      </div>
+      <div class="md-notif" style="margin-top:0.6rem;">
+        <div class="md-notif-icon" style="font-family:'Instrument Serif',serif;color:var(--pink);font-size:0.9rem;font-weight:400;">M</div>
+        <div>
+          <div class="md-notif-title">Match delivered</div>
+          <div class="md-notif-sub">Both received profile + Google Meet link</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- TICKER -->
+<div class="ticker"><div class="t-track" id="tk"></div></div>
+
+<!-- BENTO FEATURES -->
+<div class="bento-section rv" id="how">
+  <div style="max-width:1300px;margin:0 auto;">
+    <div class="ey">Why PrepPaired</div>
+    <div class="sec-title">Everything your prep<br>was missing.</div>
+  </div>
+  <div class="bento-grid" id="bentogrid">
+    <div class="bento b1">
+      <div class="b-tag">Core feature</div>
+      <div class="b-num">96%</div>
+      <div class="b-title">Compatibility scoring</div>
+      <div class="b-desc">Every match is scored across 5 dimensions: level, firm targets, case format, language, and timezone. You see why you were paired — no black box.</div>
+      <div class="format-vis" style="margin-top:1.4rem">
+        <div class="fv-row"><span class="fv-label">Level</span><div class="fv-bar-wrap"><div class="fv-bar" style="width:100%"></div></div><span class="fv-pct">100%</span></div>
+        <div class="fv-row"><span class="fv-label">Format</span><div class="fv-bar-wrap"><div class="fv-bar" style="width:90%"></div></div><span class="fv-pct">90%</span></div>
+        <div class="fv-row"><span class="fv-label">Language</span><div class="fv-bar-wrap"><div class="fv-bar" style="width:85%"></div></div><span class="fv-pct">85%</span></div>
+        <div class="fv-row"><span class="fv-label">Firms</span><div class="fv-bar-wrap"><div class="fv-bar" style="width:80%"></div></div><span class="fv-pct">80%</span></div>
+        <div class="fv-row"><span class="fv-label">Timezone</span><div class="fv-bar-wrap"><div class="fv-bar" style="width:95%"></div></div><span class="fv-pct">95%</span></div>
+      </div>
+    </div>
+    <div class="bento b2">
+      <div class="b-icon" style="font-size:1rem;letter-spacing:-0.02em;font-family:'Instrument Serif',serif;color:var(--pink);opacity:0.7">01</div>
+      <div class="b-title">Exact level matching</div>
+      <div class="b-desc">Beginner to expert — practice with someone at your exact stage, not someone 3 months ahead who'll crush your confidence.</div>
+    </div>
+    <div class="bento b3">
+      <div class="b-icon" style="font-size:1rem;font-family:'Instrument Serif',serif;color:var(--pink);opacity:0.7">02</div>
+      <div class="b-title">Format-aware</div>
+      <div class="b-desc">McKinsey = interviewer-led. BCG = interviewee-led. We match the format, not just the firm.</div>
+    </div>
+    <div class="bento b4">
+      <div class="b-icon" style="font-size:1rem;font-family:'Instrument Serif',serif;color:var(--pink);opacity:0.7">03</div>
+      <div class="b-title">Language-aware</div>
+      <div class="b-desc">Prep in French, German, Mandarin or Spanish. We match you with someone who speaks your language for your target market.</div>
+    </div>
+    <div class="bento b5">
+      <div class="b-icon" style="font-size:1rem;font-family:'Instrument Serif',serif;color:var(--pink);opacity:0.7">04</div>
+      <div class="b-title">Zero friction</div>
+      <div class="b-desc">Match found → both get email + Google Meet link. No app, no scheduling tool, no DMs.</div>
+    </div>
+    <div class="bento b6">
+      <div class="b-icon" style="font-size:1rem;font-family:'Instrument Serif',serif;color:var(--pink);opacity:0.7">05</div>
+      <div class="b-title">Availability matching</div>
+      <div class="b-desc">You both mark your available slots. We only pair people who can actually meet — AM, PM, or evening, any day of the week. No more ghosted scheduling threads.</div>
+    </div>
+  </div>
+</div>
+
+<!-- PROCESS — FULL PINK -->
+<div class="process-section rv">
+  <div class="process-inner">
+    <div class="process-eyebrow">How it works</div>
+    <div class="process-title">Three steps.<br>One great partner.</div>
+    <div class="process-grid">
+      <div class="proc-card">
+        <div class="proc-num">01</div>
+        <div class="proc-title">Create your profile</div>
+        <div class="proc-desc">Level, firms, case format, language, and availability. Takes under 3 minutes. No account needed.</div>
+      </div>
+      <div class="proc-card">
+        <div class="proc-num">02</div>
+        <div class="proc-title">AI finds your match</div>
+        <div class="proc-desc">We score compatibility across every dimension and pair you with the highest-fit person in the pool. Usually within 24 hours.</div>
+      </div>
+      <div class="proc-card">
+        <div class="proc-num">03</div>
+        <div class="proc-title">Both of you get an email</div>
+        <div class="proc-desc">Each other's profile, compatibility score breakdown, and a direct Google Meet link. Accept and start prepping immediately.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- FIRMS WALL -->
+<div class="firms-section rv" id="firms">
+  <div class="firms-inner">
+    <div class="ey">Supported firms</div>
+    <div class="sec-title">Every firm.<br>Every format. Every level.</div>
+    <div class="firms-wall">
+      <div class="fw-cell mbb"><div class="fw-name">McKinsey & Co</div><div class="fw-fmt">Interviewer-led</div></div>
+      <div class="fw-cell mbb"><div class="fw-name">BCG</div><div class="fw-fmt">Interviewee-led</div></div>
+      <div class="fw-cell mbb"><div class="fw-name">Bain & Company</div><div class="fw-fmt">Mixed</div></div>
+      <div class="fw-cell"><div class="fw-name">Oliver Wyman</div><div class="fw-fmt">Interviewee-led</div></div>
+      <div class="fw-cell"><div class="fw-name">Roland Berger</div><div class="fw-fmt">Interviewee-led</div></div>
+      <div class="fw-cell"><div class="fw-name">AT Kearney</div><div class="fw-fmt">Mixed</div></div>
+      <div class="fw-cell"><div class="fw-name">Monitor Deloitte</div><div class="fw-fmt">Interviewee-led</div></div>
+      <div class="fw-cell"><div class="fw-name">Kéa Partners</div><div class="fw-fmt">Interviewee-led</div></div>
+      <div class="fw-cell"><div class="fw-name">OC&C</div><div class="fw-fmt">Interviewee-led</div></div>
+      <div class="fw-cell"><div class="fw-name">Advancy</div><div class="fw-fmt">Interviewee-led</div></div>
+      <div class="fw-cell"><div class="fw-name">L.E.K.</div><div class="fw-fmt">Interviewee-led</div></div>
+      <div class="fw-cell"><div class="fw-name">Simon-Kucher</div><div class="fw-fmt">Interviewee-led</div></div>
+      <div class="fw-cell"><div class="fw-name">Exton Consulting</div><div class="fw-fmt">Interviewee-led</div></div>
+      <div class="fw-cell"><div class="fw-name">CH&Co</div><div class="fw-fmt">Interviewee-led</div></div>
+      <div class="fw-cell"><div class="fw-name">Eleven Strategy</div><div class="fw-fmt">Interviewee-led</div></div>
+      <div class="fw-cell"><div class="fw-name">Ares & Co</div><div class="fw-fmt">Interviewee-led</div></div>
+      <div class="fw-cell"><div class="fw-name">Vertone</div><div class="fw-fmt">Interviewee-led</div></div>
+      <div class="fw-cell"><div class="fw-name">CVA</div><div class="fw-fmt">Interviewee-led</div></div>
+      <div class="fw-cell"><div class="fw-name">Estin & Co</div><div class="fw-fmt">Interviewee-led</div></div>
+      <div class="fw-cell"><div class="fw-name">Other</div><div class="fw-fmt">Varies</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- SCROLLING QUOTES -->
+<div class="q-section rv">
+  <div class="q-track" id="qt"></div>
+</div>
+
+<!-- FINAL CTA -->
+<div style="padding:8rem 5%;text-align:center;border-top:1px solid var(--b);" class="rv">
+  <div style="max-width:560px;margin:0 auto;">
+    <div class="ey" style="justify-content:center;margin-bottom:1.2rem;">Ready?</div>
+    <div style="font-family:'Instrument Serif',serif;font-size:clamp(2.2rem,4vw,3.8rem);letter-spacing:-0.03em;line-height:1.1;margin-bottom:1rem;">Join the pool.<br>Get your <em style="font-style:italic;color:var(--pink);">match.</em></div>
+    <p style="font-size:0.92rem;color:var(--g);font-weight:300;margin-bottom:2.5rem;line-height:1.7;">Free. No account needed. Fill in your profile and we'll email you the moment your match is found.</p>
+    <button class="btn-p" style="font-size:1rem;padding:1rem 2.8rem;" onclick="showS()">Get matched now →</button>
+  </div>
+</div>
+
+<footer>
+  <div class="f-logo"><div class="f-dot"></div>PrepPaired</div>
+  <div class="f-r">© 2025 PrepPaired · AI-Matched Consulting Prep · Always Free</div>
+</footer>
+</div>
+
+<!-- ══════════════════════ SIGNUP ══════════════════════ -->
+<div id="sv">
+  <button class="back" onclick="showL()">← Back</button>
+  <div class="ft">Tell us about <em>yourself.</em></div>
+  <div class="fs">We use this to find your most compatible case partner.</div>
+  <div id="err" class="err"></div>
+  <div id="fc">
+    <div class="fb"><span class="fbl">01 — Basic info</span>
+      <div class="ff"><label class="fl">Email <sup>*</sup></label><input type="email" id="fe" placeholder="your@email.com"></div>
+      <div class="tcf">
+        <div class="ff"><label class="fl">First name <sup>*</sup></label><input type="text" id="fn" placeholder="Your first name"></div>
+        <div class="ff"><label class="fl">City <sup>*</sup></label><input type="text" id="fc2" placeholder="Paris, London…"><div class="fh">Used to align timezones</div></div>
+      </div>
+    </div>
+    <div class="fb"><span class="fbl">02 — Your level</span>
+      <div class="ff"><label class="fl">Cases done? <sup>*</sup></label>
+        <select id="flv"><option value="">Select level</option><option value="beginner">Beginner — 0–10 cases</option><option value="intermediate">Intermediate — 10–30</option><option value="advanced">Advanced — 30–60</option><option value="expert">Expert — 60+</option></select>
+      </div>
+    </div>
+    <div class="fb"><span class="fbl">03 — What to practice</span>
+      <div class="ff"><label class="fl">Interview type <sup>*</sup></label>
+        <div class="pg" id="ct">
+          <button class="pp" data-v="business_case" onclick="pt(this)">Business Case</button>
+          <button class="pp" data-v="behavioral" onclick="pt(this)">Behavioral / Fit</button>
+          <button class="pp" data-v="both" onclick="pt(this)">Both</button>
+        </div>
+      </div>
+      <div class="cf" id="cff"><div class="cfl">Business case format <sup style="color:var(--pink)">*</sup></div>
+        <div class="pg" id="cf3">
+          <button class="pp" data-v="interviewer_led" onclick="ps(this,'cf3')">Interviewer-led <span style="font-size:0.62rem;opacity:0.5">(McKinsey)</span></button>
+          <button class="pp" data-v="interviewee_led" onclick="ps(this,'cf3')">Interviewee-led <span style="font-size:0.62rem;opacity:0.5">(BCG)</span></button>
+          <button class="pp" data-v="both_formats" onclick="ps(this,'cf3')">Both formats</button>
+        </div>
+      </div>
+      <div class="ff" style="margin-top:1.1rem"><label class="fl">Language(s) <sup>*</sup></label>
+        <div class="pg" id="cl">
+          <button class="pp" data-v="english" onclick="tp(this)">English</button>
+          <button class="pp" data-v="french" onclick="tp(this)">Français</button>
+          <button class="pp" data-v="german" onclick="tp(this)">Deutsch</button>
+          <button class="pp" data-v="spanish" onclick="tp(this)">Español</button>
+          <button class="pp" data-v="mandarin" onclick="tp(this)">中文</button>
+          <button class="pp" data-v="other" onclick="tp(this)">Other</button>
+        </div>
+      </div>
+    </div>
+    <div class="fb"><span class="fbl">04 — Target firms</span>
+      <div class="ff"><label class="fl">Which firms? <sup>*</sup></label>
+        <div class="pg" id="cfm">
+          <button class="pp" data-v="mckinsey" onclick="tp(this)">McKinsey & Co</button>
+          <button class="pp" data-v="bcg" onclick="tp(this)">BCG</button>
+          <button class="pp" data-v="bain" onclick="tp(this)">Bain</button>
+          <button class="pp" data-v="oliver_wyman" onclick="tp(this)">Oliver Wyman</button>
+          <button class="pp" data-v="roland_berger" onclick="tp(this)">Roland Berger</button>
+          <button class="pp" data-v="kearney" onclick="tp(this)">AT Kearney</button>
+          <button class="pp" data-v="monitor_deloitte" onclick="tp(this)">Monitor Deloitte</button>
+          <button class="pp" data-v="kea" onclick="tp(this)">Kéa Partners</button>
+          <button class="pp" data-v="occ" onclick="tp(this)">OC&C</button>
+          <button class="pp" data-v="advancy" onclick="tp(this)">Advancy</button>
+          <button class="pp" data-v="lek" onclick="tp(this)">L.E.K.</button>
+          <button class="pp" data-v="simon_kucher" onclick="tp(this)">Simon-Kucher</button>
+          <button class="pp" data-v="exton" onclick="tp(this)">Exton</button>
+          <button class="pp" data-v="ch_co" onclick="tp(this)">CH&Co</button>
+          <button class="pp" data-v="eleven" onclick="tp(this)">Eleven Strategy</button>
+          <button class="pp" data-v="ares" onclick="tp(this)">Ares & Co</button>
+          <button class="pp" data-v="vertone" onclick="tp(this)">Vertone</button>
+          <button class="pp" data-v="cva" onclick="tp(this)">CVA</button>
+          <button class="pp" data-v="estin" onclick="tp(this)">Estin & Co</button>
+          <button class="pp" data-v="other" onclick="tp(this)">Other</button>
+        </div>
+      </div>
+    </div>
+    <div class="fb"><span class="fbl">05 — Availability</span>
+      <div class="ff"><label class="fl">When are you free? <sup>*</sup></label>
+        <div class="fh" style="margin-bottom:0.7rem">AM = before noon · PM = afternoon · Eve = after 6pm</div>
+        <div class="ag" id="avh" style="margin-bottom:0.25rem"></div>
+        <div class="ag" id="avs"></div>
+      </div>
+    </div>
+    <button class="sub" onclick="sub()">Find my partner →</button>
+    <div style="height:4rem"></div>
+  </div>
+  <div class="ssc" id="ssc">
+    <div class="ssi">✦</div>
+    <div class="sst">You're <em>in.</em></div>
+    <p class="sss">Your profile is in the pool. The moment we find a compatible partner, you'll get an email with their profile and a direct Google Meet link.<br><br>Usually within 24 hours.</p>
+    <button class="btn-p" onclick="showL()">Back to home</button>
+  </div>
+</div>
+
+<!-- ══════════════════════ ADMIN ══════════════════════ -->
+<div id="av">
+  <button class="back" onclick="showL()">← Back to site</button>
+  <div class="at">PrepPaired Admin</div>
+  <div class="as_">Manage profiles and run AI matching. Type "admin" to access.</div>
+  <div class="asg">
+    <div class="asc"><div class="asl">Total</div><div class="asv" id="st">0</div></div>
+    <div class="asc"><div class="asl">Waiting</div><div class="asv" id="sw">0</div></div>
+    <div class="asc"><div class="asl">Matched</div><div class="asv" id="sm">0</div></div>
+    <div class="asc"><div class="asl">Languages</div><div class="asv" id="sl">—</div></div>
+  </div>
+  <div class="aa">
+    <button class="ab2" onclick="runMatch()">✦ Run AI Matching</button>
+    <button class="ab2 o" onclick="refTbl()">↺ Refresh</button>
+    <button class="ab2 o" onclick="clrAll()">Clear all</button>
+  </div>
+  <div class="mb" id="mb"><div class="mbt">Latest matches</div><div id="mpd"></div></div>
+  <div class="tw"><table><thead><tr><th>Name</th><th>Email</th><th>Level</th><th>Firms</th><th>Language</th><th>City</th><th>Status</th></tr></thead><tbody id="ptb"></tbody></table></div>
+  <div style="height:4rem"></div>
+</div>
+
+<script>
+// CURSOR
+const cur=document.getElementById('cursor');
+document.addEventListener('mousemove',e=>{cur.style.left=e.clientX+'px';cur.style.top=e.clientY+'px';});
+document.addEventListener('mousedown',()=>cur.style.transform='translate(-50%,-50%) scale(2)');
+document.addEventListener('mouseup',()=>cur.style.transform='translate(-50%,-50%) scale(1)');
+
+// TICKER
+const fl=['McKinsey & Co','BCG','Bain & Company','Oliver Wyman','Roland Berger','AT Kearney','Monitor Deloitte','Kéa Partners','OC&C','Advancy','L.E.K.','Simon-Kucher','Exton','CH&Co','Eleven Strategy','Ares & Co','Vertone','CVA','Estin & Co'];
+const tk=document.getElementById('tk');
+[...fl,...fl].forEach(f=>{const d=document.createElement('div');d.className='t-item';d.textContent=f;tk.appendChild(d);});
+
+// QUOTE TRACK
+const quotes=[
+  {t:'PrepPaired found me a McKinsey-prep partner in the same timezone with the same case count. Impossible to find on your own.',s:'ESSEC Business School'},
+  {t:'I needed interviewer-led prep for McKinsey, not BCG-style. PrepPaired got that distinction. Other platforms don\'t.',s:'HEC Paris'},
+  {t:'Prepping for BCG in French. Every group I found was English-only. PrepPaired matched me with someone in Lyon.',s:'Sciences Po Paris'},
+  {t:'The compatibility score is what sold me. You see exactly why you\'re paired — level, format, firms, availability.',s:'Dauphine'},
+  {t:'Got matched within 18 hours. Did 6 cases that week. That\'s more than I\'d done in the previous month.',s:'EM Lyon'},
+  {t:'PrepPaired found me a McKinsey-prep partner in the same timezone with the same case count. Impossible to find on your own.',s:'ESSEC Business School'},
+  {t:'I needed interviewer-led prep for McKinsey, not BCG-style. PrepPaired got that distinction. Other platforms don\'t.',s:'HEC Paris'},
+  {t:'Prepping for BCG in French. Every group I found was English-only. PrepPaired matched me with someone in Lyon.',s:'Sciences Po Paris'},
+];
+const qt=document.getElementById('qt');
+quotes.forEach(q=>{const c=document.createElement('div');c.className='q-card';c.innerHTML=`<div class="q-text">"${q.t}"</div><div class="q-school">${q.s}</div>`;qt.appendChild(c);});
+
+// BENTO MOUSE GLOW
+document.querySelectorAll('.bento').forEach(b=>{b.addEventListener('mousemove',e=>{const r=b.getBoundingClientRect();b.style.setProperty('--mx',((e.clientX-r.left)/r.width*100)+'%');b.style.setProperty('--my',((e.clientY-r.top)/r.height*100)+'%');});});
+
+// STORAGE
+let profiles=JSON.parse(localStorage.getItem('pp')||'[]');
+function save(){localStorage.setItem('pp',JSON.stringify(profiles));}
+
+// VIEWS
+function showL(){['lv','sv','av'].forEach((id,i)=>document.getElementById(id).style.display=i===0?'block':'none');window.scrollTo({top:0,behavior:'smooth'});}
+function showS(){['lv','sv','av'].forEach((id,i)=>document.getElementById(id).style.display=i===1?'block':'none');document.getElementById('fc').style.display='block';document.getElementById('ssc').style.display='none';document.getElementById('err').style.display='none';window.scrollTo({top:0,behavior:'smooth'});buildAv();}
+function showA(){['lv','sv','av'].forEach((id,i)=>document.getElementById(id).style.display=i===2?'block':'none');window.scrollTo({top:0,behavior:'smooth'});refTbl();}
+let abf='';document.addEventListener('keypress',e=>{abf+=e.key;if(abf.endsWith('admin'))showA();if(abf.length>10)abf=abf.slice(-10);});
+
+// PILLS
+function tp(b){b.classList.toggle('on');}
+function ps(b,g){document.querySelectorAll('#'+g+' .pp').forEach(p=>p.classList.remove('on'));b.classList.add('on');}
+function pt(b){document.querySelectorAll('#ct .pp').forEach(p=>p.classList.remove('on'));b.classList.add('on');const v=b.dataset.v;document.getElementById('cff').classList[v==='business_case'||v==='both'?'add':'remove']('show');}
+function ga(id){return[...document.querySelectorAll('#'+id+' .pp.on')].map(p=>p.dataset.v);}
+
+// AVAIL
+const DAYS=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'],SLOTS=['AM','PM','Eve'];
+function buildAv(){const h=document.getElementById('avh'),s=document.getElementById('avs');if(h.children.length)return;DAYS.forEach(d=>{const e=document.createElement('div');e.className='ah';e.textContent=d;h.appendChild(e);});SLOTS.forEach(sl=>DAYS.forEach(dy=>{const b=document.createElement('button');b.className='ab';b.textContent=sl;b.dataset.k=dy+'-'+sl;b.onclick=()=>b.classList.toggle('on');s.appendChild(b);}));}
+function getAv(){return[...document.querySelectorAll('.ab.on')].map(b=>b.dataset.k);}
+
+// SUBMIT
+function sub(){
+  const err=document.getElementById('err');err.style.display='none';
+  const email=document.getElementById('fe').value.trim(),name=document.getElementById('fn').value.trim(),city=document.getElementById('fc2').value.trim(),level=document.getElementById('flv').value;
+  const types=ga('ct'),formats=ga('cf3'),langs=ga('cl'),firms=ga('cfm'),avail=getAv();
+  function show(m){err.textContent=m;err.style.display='block';err.scrollIntoView({behavior:'smooth',block:'center'});}
+  if(!email||!name||!city||!level)return show('Please fill in all basic info fields.');
+  if(!email.includes('@'))return show('Please enter a valid email address.');
+  if(!types.length)return show('Please select an interview type.');
+  if((types.includes('business_case')||types.includes('both'))&&!formats.length)return show('Please select a business case format (interviewer-led or interviewee-led).');
+  if(!langs.length)return show('Please select at least one language.');
+  if(!firms.length)return show('Please select at least one target firm.');
+  if(!avail.length)return show('Please select at least one availability slot.');
+  profiles.push({id:Date.now(),email,name,city,level,types,formats,langs,firms,avail,status:'waiting',createdAt:new Date().toISOString()});
+  save();
+  document.getElementById('fc').style.display='none';
+  document.getElementById('ssc').style.display='block';
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+// COMPAT
+function cmp(a,b){let s=0;const lv=['beginner','intermediate','advanced','expert'];const d=Math.abs(lv.indexOf(a.level)-lv.indexOf(b.level));s+=d===0?35:d===1?15:0;s+=a.langs.filter(l=>b.langs.includes(l)).length*15;s+=Math.min(a.firms.filter(f=>b.firms.includes(f)).length*8,20);s+=(a.types.filter(t=>b.types.includes(t)).length||(a.types.includes('both')||b.types.includes('both')?1:0))*10;s+=(a.formats||[]).filter(f=>(b.formats||[]).includes(f)).length*10;s+=Math.min(a.avail.filter(v=>b.avail.includes(v)).length*2,10);return Math.min(s,100);}
+
+// MATCHING
+async function runMatch(){
+  const wt=profiles.filter(p=>p.status==='waiting');
+  if(wt.length<2){alert('Need at least 2 waiting profiles.');return;}
+  document.getElementById('lo').classList.add('on');
+  const sm=wt.map(p=>({id:p.id,name:p.name,level:p.level,langs:p.langs,firms:p.firms.slice(0,4),types:p.types,formats:p.formats||[],avail:p.avail.slice(0,8),city:p.city}));
+  let pairs=[];
+  try{const r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1000,system:'Matching algorithm for consulting interview prep. Find optimal pairs: same level (most important), shared languages, same case format (interviewer-led vs interviewee-led), overlapping firms, availability. Return ONLY valid JSON: [{"a":id1,"b":id2,"reason":"one sentence","score":0-100}]. No person used twice.',messages:[{role:'user',content:'Match: '+JSON.stringify(sm)}]})});const data=await r.json();const txt=data.content.filter(c=>c.type==='text').map(c=>c.text).join('');pairs=JSON.parse(txt.replace(/```json|```/g,'').trim());}
+  catch(e){const used=new Set();for(let i=0;i<wt.length;i++){if(used.has(wt[i].id))continue;let bj=-1,bs=-1;for(let j=i+1;j<wt.length;j++){if(used.has(wt[j].id))continue;const sc=cmp(wt[i],wt[j]);if(sc>bs){bs=sc;bj=j;}}if(bj>=0){pairs.push({a:wt[i].id,b:wt[bj].id,score:bs,reason:'Auto-matched by compatibility'});used.add(wt[i].id);used.add(wt[bj].id);}}}
+  const pd=document.getElementById('mpd');pd.innerHTML='';
+  const cols=['#FF1F5F','#3B4FE8','#16A34A','#D97706','#7C3AED'];
+  for(const[i,p]of pairs.entries()){const pa=profiles.find(x=>x.id===p.a),pb=profiles.find(x=>x.id===p.b);if(!pa||!pb)continue;const rid=Math.random().toString(36).substr(2,9);const lk=`https://meet.google.com/${rid.substr(0,3)}-${rid.substr(3,4)}-${rid.substr(7)}`;pa.status='matched';pa.matchedWith=pb.id;pa.meetLink=lk;pb.status='matched';pb.matchedWith=pa.id;pb.meetLink=lk;const c=cols[i%cols.length];pd.innerHTML+=`<div class="mp"><div class="pa" style="background:${c}">${pa.name[0]}</div><div class="pi"><div class="pn">${pa.name}</div><div class="pd_">${pa.level} · ${pa.city}</div></div><div class="parr">↔</div><div class="pi"><div class="pn">${pb.name}</div><div class="pd_">${pb.level} · ${pb.city}</div></div><div class="psc">${p.score||'—'}/100</div></div><div class="pr">↳ ${p.reason} · <a href="${lk}" target="_blank" style="color:var(--pink2)">Meet link ↗</a></div>`;}
+  save();document.getElementById('lo').classList.remove('on');document.getElementById('mb').style.display='block';document.getElementById('mb').scrollIntoView({behavior:'smooth'});refTbl();
+}
+
+// ADMIN TABLE
+function refTbl(){const tb=document.getElementById('ptb');tb.innerHTML='';document.getElementById('st').textContent=profiles.length;document.getElementById('sw').textContent=profiles.filter(p=>p.status==='waiting').length;document.getElementById('sm').textContent=profiles.filter(p=>p.status==='matched').length;document.getElementById('sl').textContent=[...new Set(profiles.flatMap(p=>p.langs))].length||'—';profiles.forEach(p=>{tb.innerHTML+=`<tr><td><strong>${p.name}</strong></td><td style="font-size:0.72rem;opacity:0.4">${p.email}</td><td>${p.level}</td><td style="font-size:0.7rem">${p.firms.slice(0,2).join(', ')}${p.firms.length>2?'…':''}</td><td>${p.langs.join(', ')}</td><td>${p.city}</td><td><span class="bw ${p.status==='matched'?'bwm':'bww'}">${p.status}</span></td></tr>`;});}
+function clrAll(){if(!confirm('Delete all?'))return;profiles=[];save();refTbl();document.getElementById('mb').style.display='none';}
+
+// SCROLL REVEAL
+const obs=new IntersectionObserver(es=>{es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('vi');obs.unobserve(e.target);}});},{threshold:0.08});
+document.querySelectorAll('.rv').forEach(r=>obs.observe(r));
+</script>
+</body>
+</html>
