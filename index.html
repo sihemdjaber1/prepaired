@@ -596,19 +596,7 @@ let currentUser=null;
 sb.auth.onAuthStateChange((event,session)=>{
   currentUser=session?.user||null;
   updateNavForUser();
-  if(event==='SIGNED_IN'){
-    showSignup();
-  }
 });
-
-// On page load, check for existing session (handles OAuth redirect)
-(async()=>{
-  const{data}=await sb.auth.getSession();
-  if(data?.session?.user){
-    currentUser=data.session.user;
-    updateNavForUser();
-  }
-})();
 
 function updateNavForUser(){
   const nu=document.getElementById('nav-user');
