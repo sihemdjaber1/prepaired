@@ -2,7 +2,7 @@
 
 > **Practice smarter. Get matched. Land the offer.**
 
-![Status](https://img.shields.io/badge/Status-Live-brightgreen?style=flat-square)
+[![Live Demo](https://img.shields.io/badge/Live%20Demo-prepairedapp-black?style=flat-square)](https://sihemdjaber1.github.io/prepaired/)
 
 ---
 
