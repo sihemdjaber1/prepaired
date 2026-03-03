@@ -827,9 +827,9 @@ async function runMatch(){
     if(!pa||!pb)continue;
 
     // Generate Google Meet link
-    const alpha='abcdefghijkmnopqrstuvwxyz';
+    const alpha='ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789';
     const rnd=(n)=>Array.from({length:n},()=>alpha[Math.floor(Math.random()*alpha.length)]).join('');
-    const meetLink=`https://meet.google.com/${rnd(3)}-${rnd(4)}-${rnd(3)}`;
+    const meetLink=`https://meet.jit.si/PrepPaired-${rnd(10)}`;
 
     setLoader(true,`Sending emails to ${pa.name} & ${pb.name}…`,'');
 
