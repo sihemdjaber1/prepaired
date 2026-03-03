@@ -820,8 +820,8 @@ async function sendMatchEmails(pa, pb, meetLink, reason, score){
   const bLocalLabel=utcSlot?utcSlotToLocalLabel(utcSlot,bOffset,bTz):'a time that works for both of you';
 
   const slot=utcSlot?formatSlot(utcSlot):{day:'a mutually available day',period:'',time:'',label:'a time that works for both'};
-  const utcDayName=utcSlot?formatSlot(utcSlot).day:'a mutually available day';
-  const suggestedDate=utcDayName!=='a mutually available day'?nextOccurrence(utcDayName):utcDayName;
+  const utcDayName=utcSlot?formatSlot(utcSlot).day:'';
+  const suggestedDate=utcDayName?nextOccurrence(utcDayName):'';
 
   const emailA={
     user_name:pa.name,to_email:pa.email,
@@ -833,7 +833,7 @@ async function sendMatchEmails(pa, pb, meetLink, reason, score){
     match_reason:reason,match_score:score,meet_link:meetLink,
     shared_slot:aLocalLabel,
     suggested_day:suggestedDate,
-    suggested_time:aLocalLabel
+    suggested_time:suggestedDate?(suggestedDate+' at '+aLocalLabel.split(' at ')[1]):aLocalLabel
   };
   const emailB={
     user_name:pb.name,to_email:pb.email,
@@ -845,7 +845,7 @@ async function sendMatchEmails(pa, pb, meetLink, reason, score){
     match_reason:reason,match_score:score,meet_link:meetLink,
     shared_slot:bLocalLabel,
     suggested_day:suggestedDate,
-    suggested_time:bLocalLabel
+    suggested_time:suggestedDate?(suggestedDate+' at '+bLocalLabel.split(' at ')[1]):bLocalLabel
   };
 
   let aOk=false,bOk=false;
