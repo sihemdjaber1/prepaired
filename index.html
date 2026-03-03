@@ -571,69 +571,12 @@ const EJ_KEY='P1LHt_pms0nuXgSYV';
 
 // ── SLOT → TIME HELPERS ──────────────────────────────────
 const SLOT_TIME={'AM':'10:30','PM':'15:00','Eve':'19:30'};
-const SLOT_HOUR={'AM':10,'PM':15,'Eve':19};
 const DAY_NAMES={Mon:'Monday',Tue:'Tuesday',Wed:'Wednesday',Thu:'Thursday',Fri:'Friday',Sat:'Saturday',Sun:'Sunday'};
-const DAY_NUM={Mon:1,Tue:2,Wed:3,Thu:4,Fri:5,Sat:6,Sun:0};
-const DAY_IDX=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
 
-// ── TIMEZONE UTILS ───────────────────────────────────────
-function detectTimezone(){
-  return Intl.DateTimeFormat().resolvedOptions().timeZone||'UTC';
-}
-function getUtcOffsetMinutes(tz){
-  try{
-    const now=new Date();
-    // Use a fixed date to get consistent offset
-    const jan=new Date(now.getFullYear(),0,1);
-    const utcMs=jan.getTime();
-    const localStr=jan.toLocaleString('en-US',{timeZone:tz,year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false});
-    const parts=localStr.match(/(\d+)\/(\d+)\/(\d+),\s(\d+):(\d+):(\d+)/);
-    if(!parts)return 0;
-    const localMs=new Date(parts[3],parts[1]-1,parts[2],parts[4]%24,parts[5],parts[6]).getTime();
-    return Math.round((localMs-utcMs)/60000);
-  }catch(e){return 0;}
-}
-// Convert local slot "Mon-AM" to UTC slot using offset in minutes
-function localSlotToUtc(slot,offsetMins){
-  const[day,period]=slot.split('-');
-  const localHour=SLOT_HOUR[period];
-  const totalLocalMins=DAY_NUM[day]*24*60+localHour*60;
-  const totalUtcMins=totalLocalMins-offsetMins;
-  const utcDayMins=((totalUtcMins%(7*24*60))+(7*24*60))%(7*24*60);
-  const utcDayIdx=Math.floor(utcDayMins/(24*60));
-  const utcHour=Math.floor((utcDayMins%(24*60))/60);
-  const utcDay=DAY_IDX[utcDayIdx];
-  let utcPeriod='AM';
-  if(utcHour>=19)utcPeriod='Eve';
-  else if(utcHour>=13)utcPeriod='PM';
-  return`${utcDay}-${utcPeriod}`;
-}
-// Convert UTC slot back to local display label
-function utcSlotToLocalLabel(utcSlot,offsetMins,tz){
-  const[day,period]=utcSlot.split('-');
-  const utcHour=SLOT_HOUR[period];
-  const dayIdx=DAY_IDX.indexOf(day);
-  const totalUtcMins=dayIdx*24*60+utcHour*60;
-  const totalLocalMins=totalUtcMins+offsetMins;
-  const localDayMins=((totalLocalMins%(7*24*60))+(7*24*60))%(7*24*60);
-  const localDayIdx=Math.floor(localDayMins/(24*60));
-  const localHour=Math.floor((localDayMins%(24*60))/60);
-  const localDay=DAY_IDX[localDayIdx];
-  const ampm=localHour>=12?'pm':'am';
-  const h12=localHour%12||12;
-  // Show city-friendly timezone e.g. "Europe/Paris" -> "Paris"
-  const tzCity=tz&&tz!=='UTC'?tz.split('/').pop().replace(/_/g,' '):tz||'UTC';
-  return`${DAY_NAMES[localDay]||localDay} at ${h12}:00${ampm} (${tzCity} time)`;
-}
-
-function getSharedSlots(a,b){
-  const aUtc=a.avail_utc||a.avail;
-  const bUtc=b.avail_utc||b.avail;
-  return aUtc.filter(s=>bUtc.includes(s));
-}
+function getSharedSlots(a,b){return a.avail.filter(s=>b.avail.includes(s));}
 function formatSlot(slot){
   const[day,period]=slot.split('-');
-  return{day:DAY_NAMES[day]||day, period, time:SLOT_TIME[period]||'', label:`${DAY_NAMES[day]||day} ${period} (${SLOT_TIME[period]})`};
+  return{day:DAY_NAMES[day]||day, period, time:SLOT_TIME[period]||'', label:`${DAY_NAMES[day]} ${period} (${SLOT_TIME[period]})`};
 }
 function nextOccurrence(dayName){
   const days={Monday:1,Tuesday:2,Wednesday:3,Thursday:4,Friday:5,Saturday:6,Sunday:0};
@@ -768,16 +711,10 @@ async function submitProfile(){
   const btn=document.getElementById('submit-btn');
   btn.disabled=true;btn.textContent='Saving…';
 
-  // Detect timezone and convert slots to UTC
-  const tz=detectTimezone();
-  const offsetMins=getUtcOffsetMinutes(tz);
-  const avail_utc=[...new Set(avail.map(s=>localSlotToUtc(s,offsetMins)))];
-
   const profile={
     user_id:currentUser.id,
     email,name,city,level,
-    types,formats,langs,firms,avail,avail_utc,
-    timezone:tz,timezone_offset:offsetMins,
+    types,formats,langs,firms,avail,
     status:'waiting',
     updated_at:new Date().toISOString()
   };
@@ -801,52 +738,27 @@ function cmp(a,b){
   s+=Math.min(a.firms.filter(f=>b.firms.includes(f)).length*8,20);
   s+=(a.types.filter(t=>b.types.includes(t)).length||(a.types.includes('both')||b.types.includes('both')?1:0))*10;
   s+=(a.formats||[]).filter(f=>(b.formats||[]).includes(f)).length*10;
-  const aUtc=a.avail_utc||a.avail; const bUtc=b.avail_utc||b.avail; s+=Math.min(aUtc.filter(v=>bUtc.includes(v)).length*2,10);
+  s+=Math.min(a.avail.filter(v=>b.avail.includes(v)).length*2,10);
   return Math.min(s,100);
 }
 
 // ── SEND MATCH EMAILS ────────────────────────────────────
 async function sendMatchEmails(pa, pb, meetLink, reason, score){
   const shared=getSharedSlots(pa,pb);
-  const utcSlot=shared.length>0?shared[0]:null;
+  const slot=shared.length>0?formatSlot(shared[0]):{day:'a mutually available day',period:'',time:'',label:'a time that works for both of you'};
+  const suggestedDate=slot.day!=='a mutually available day'?nextOccurrence(slot.day):slot.day;
 
-  // Build timezone-aware local labels for each person
-  const aOffset=pa.timezone_offset||0;
-  const bOffset=pb.timezone_offset||0;
-  const aTz=pa.timezone||'UTC';
-  const bTz=pb.timezone||'UTC';
-
-  const aLocalLabel=utcSlot?utcSlotToLocalLabel(utcSlot,aOffset,aTz):'a time that works for both of you';
-  const bLocalLabel=utcSlot?utcSlotToLocalLabel(utcSlot,bOffset,bTz):'a time that works for both of you';
-
-  const slot=utcSlot?formatSlot(utcSlot):{day:'a mutually available day',period:'',time:'',label:'a time that works for both'};
-  const utcDayName=utcSlot?formatSlot(utcSlot).day:'';
-  const suggestedDate=utcDayName?nextOccurrence(utcDayName):'';
-
-  const emailA={
-    user_name:pa.name,to_email:pa.email,
-    partner_name:pb.name,partner_level:pb.level,
-    partner_firms:(pb.firms||[]).join(', '),
-    partner_format:(pb.formats||[]).join(', ')||(pb.types||[]).join(', '),
-    partner_langs:(pb.langs||[]).join(', '),
-    partner_city:pb.city,
-    match_reason:reason,match_score:score,meet_link:meetLink,
-    shared_slot:aLocalLabel,
-    suggested_day:suggestedDate,
-    suggested_time:suggestedDate?(suggestedDate+' at '+aLocalLabel.split(' at ')[1]):aLocalLabel
+  const base={
+    match_reason: reason,
+    match_score: score,
+    meet_link: meetLink,
+    shared_slot: slot.label,
+    suggested_day: suggestedDate,
+    suggested_time: slot.time||'a convenient time'
   };
-  const emailB={
-    user_name:pb.name,to_email:pb.email,
-    partner_name:pa.name,partner_level:pa.level,
-    partner_firms:(pa.firms||[]).join(', '),
-    partner_format:(pa.formats||[]).join(', ')||(pa.types||[]).join(', '),
-    partner_langs:(pa.langs||[]).join(', '),
-    partner_city:pa.city,
-    match_reason:reason,match_score:score,meet_link:meetLink,
-    shared_slot:bLocalLabel,
-    suggested_day:suggestedDate,
-    suggested_time:suggestedDate?(suggestedDate+' at '+bLocalLabel.split(' at ')[1]):bLocalLabel
-  };
+
+  const emailA={...base,user_name:pa.name,to_email:pa.email,partner_name:pb.name,partner_level:pb.level,partner_firms:(pb.firms||[]).join(', '),partner_format:(pb.formats||[]).join(', ')||( pb.types||[]).join(', '),partner_langs:(pb.langs||[]).join(', '),partner_city:pb.city};
+  const emailB={...base,user_name:pb.name,to_email:pb.email,partner_name:pa.name,partner_level:pa.level,partner_firms:(pa.firms||[]).join(', '),partner_format:(pa.formats||[]).join(', ')||(pa.types||[]).join(', '),partner_langs:(pa.langs||[]).join(', '),partner_city:pa.city};
 
   let aOk=false,bOk=false;
   try{
