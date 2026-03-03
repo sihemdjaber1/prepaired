@@ -621,7 +621,9 @@ function utcSlotToLocalLabel(utcSlot,offsetMins,tz){
   const localDay=DAY_IDX[localDayIdx];
   const ampm=localHour>=12?'pm':'am';
   const h12=localHour%12||12;
-  return`${DAY_NAMES[localDay]||localDay} at ${h12}:00${ampm} (${tz})`;
+  // Show city-friendly timezone e.g. "Europe/Paris" -> "Paris"
+  const tzCity=tz&&tz!=='UTC'?tz.split('/').pop().replace(/_/g,' '):tz||'UTC';
+  return`${DAY_NAMES[localDay]||localDay} at ${h12}:00${ampm} (${tzCity} time)`;
 }
 
 function getSharedSlots(a,b){
@@ -818,7 +820,8 @@ async function sendMatchEmails(pa, pb, meetLink, reason, score){
   const bLocalLabel=utcSlot?utcSlotToLocalLabel(utcSlot,bOffset,bTz):'a time that works for both of you';
 
   const slot=utcSlot?formatSlot(utcSlot):{day:'a mutually available day',period:'',time:'',label:'a time that works for both'};
-  const suggestedDate=slot.day!=='a mutually available day'?nextOccurrence(slot.day):slot.day;
+  const utcDayName=utcSlot?formatSlot(utcSlot).day:'a mutually available day';
+  const suggestedDate=utcDayName!=='a mutually available day'?nextOccurrence(utcDayName):utcDayName;
 
   const emailA={
     user_name:pa.name,to_email:pa.email,
