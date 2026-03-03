@@ -831,7 +831,7 @@ async function runMatch(){
     try{
       const wr=await fetch('https://reugkvdvfhqpxvbmxlox.supabase.co/functions/v1/swift-processor',{
         method:'POST',
-        headers:{'Content-Type':'application/json','Authorization':'Bearer '+SB_KEY}
+        headers:{'Content-Type':'application/json','apikey':SB_KEY}
       });
       const wd=await wr.json();
       meetLink=wd.roomUrl||'';
