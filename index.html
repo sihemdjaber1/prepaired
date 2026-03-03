@@ -593,9 +593,16 @@ function nextOccurrence(dayName){
 // ── AUTH STATE ───────────────────────────────────────────
 let currentUser=null;
 
+let justSignedIn=false;
+
 sb.auth.onAuthStateChange((event,session)=>{
+  const wasNull=!currentUser;
   currentUser=session?.user||null;
   updateNavForUser();
+  // Only redirect to signup if this is a fresh login (not a page reload with existing session)
+  if(event==='SIGNED_IN' && wasNull){
+    showSignup();
+  }
 });
 
 function updateNavForUser(){
@@ -613,8 +620,6 @@ function updateNavForUser(){
 }
 
 async function signInWithGoogle(){
-  // Sign out first to clear any existing session, then redirect to Google
-  await sb.auth.signOut();
   const{error}=await sb.auth.signInWithOAuth({
     provider:'google',
     options:{
