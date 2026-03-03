@@ -829,7 +829,8 @@ async function runMatch(){
     // Generate Google Meet link
     const alpha='ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789';
     const rnd=(n)=>Array.from({length:n},()=>alpha[Math.floor(Math.random()*alpha.length)]).join('');
-    const meetLink=`https://meet.jit.si/PrepPaired-${rnd(10)}`;
+    const roomName=`preppaired-${rnd(10)}`.toLowerCase();
+    const meetLink=`https://whereby.com/${roomName}`;
 
     setLoader(true,`Sending emails to ${pa.name} & ${pb.name}…`,'');
 
