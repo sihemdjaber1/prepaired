@@ -826,11 +826,30 @@ async function runMatch(){
     const pb=waiting.find(p=>p.user_id===pair.b);
     if(!pa||!pb)continue;
 
-    // Generate Google Meet link
-    const alpha='ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789';
-    const rnd=(n)=>Array.from({length:n},()=>alpha[Math.floor(Math.random()*alpha.length)]).join('');
-    const roomName=`preppaired-${rnd(10)}`.toLowerCase();
-    const meetLink=`https://whereby.com/${roomName}`;
+    // Create real Whereby room via API
+    let meetLink='';
+    try{
+      const wr=await fetch('https://api.whereby.dev/v1/meetings',{
+        method:'POST',
+        headers:{
+          'Authorization':'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJodHRwczovL2FjY291bnRzLmFwcGVhci5pbiIsImF1ZCI6Imh0dHBzOi8vYXBpLmFwcGVhci5pbi92MSIsImV4cCI6OTAwNzE5OTI1NDc0MDk5MSwiaWF0IjoxNzcyNTM2MDczLCJvcmdhbml6YXRpb25JZCI6MzM1NzY4LCJqdGkiOiIyYTkxYjY0Ni1jZmIxLTQ3YzYtYTUxZC02YWQ3MmZlYjVmMDkifQ.AOLqsZLa8W-hI7CYgkEu9aIFSK2GA6V8opxfEQMJ6io',
+          'Content-Type':'application/json'
+        },
+        body:JSON.stringify({
+          endDate: new Date(Date.now()+30*24*60*60*1000).toISOString(),
+          fields:['roomUrl']
+        })
+      });
+      const wd=await wr.json();
+      meetLink=wd.roomUrl||'';
+      console.log('Whereby room created:',meetLink);
+    } catch(e){
+      console.error('Whereby API failed:',e);
+      // Fallback
+      const alpha='abcdefghijkmnopqrstuvwxyz';
+      const rnd=(n)=>Array.from({length:n},()=>alpha[Math.floor(Math.random()*alpha.length)]).join('');
+      meetLink=`https://whereby.com/preppaired-${rnd(8)}`;
+    }
 
     setLoader(true,`Sending emails to ${pa.name} & ${pb.name}…`,'');
 
