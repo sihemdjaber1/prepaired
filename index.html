@@ -613,9 +613,14 @@ function updateNavForUser(){
 }
 
 async function signInWithGoogle(){
+  // Sign out first to clear any existing session, then redirect to Google
+  await sb.auth.signOut();
   const{error}=await sb.auth.signInWithOAuth({
     provider:'google',
-    options:{redirectTo:window.location.href}
+    options:{
+      redirectTo:window.location.href,
+      queryParams:{prompt:'select_account'}
+    }
   });
   if(error)alert('Sign in failed: '+error.message);
 }
