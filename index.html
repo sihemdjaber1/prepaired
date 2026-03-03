@@ -757,41 +757,29 @@ async function sendMatchEmails(pa, pb, meetLink, reason, score){
     suggested_time: slot.time||'a convenient time'
   };
 
-  // Email to person A (partner = B)
-  const emailA={
-    ...base,
-    user_name: pa.name,
-    to_email: pa.email,
-    partner_name: pb.name,
-    partner_level: pb.level,
-    partner_firms: pb.firms.join(', '),
-    partner_format: (pb.formats||[]).join(', ')||pb.types.join(', '),
-    partner_langs: pb.langs.join(', '),
-    partner_city: pb.city,
-  };
+  const emailA={...base,user_name:pa.name,to_email:pa.email,partner_name:pb.name,partner_level:pb.level,partner_firms:(pb.firms||[]).join(', '),partner_format:(pb.formats||[]).join(', ')||( pb.types||[]).join(', '),partner_langs:(pb.langs||[]).join(', '),partner_city:pb.city};
+  const emailB={...base,user_name:pb.name,to_email:pb.email,partner_name:pa.name,partner_level:pa.level,partner_firms:(pa.firms||[]).join(', '),partner_format:(pa.formats||[]).join(', ')||(pa.types||[]).join(', '),partner_langs:(pa.langs||[]).join(', '),partner_city:pa.city};
 
-  // Email to person B (partner = A)
-  const emailB={
-    ...base,
-    user_name: pb.name,
-    to_email: pb.email,
-    partner_name: pa.name,
-    partner_level: pa.level,
-    partner_firms: pa.firms.join(', '),
-    partner_format: (pa.formats||[]).join(', ')||pa.types.join(', '),
-    partner_langs: pa.langs.join(', '),
-    partner_city: pa.city,
-  };
+  let aOk=false,bOk=false;
+  try{
+    const r1=await Promise.race([
+      emailjs.send(EJ_SVC,EJ_TPL,emailA,EJ_KEY),
+      new Promise((_,rej)=>setTimeout(()=>rej(new Error('timeout')),8000))
+    ]);
+    aOk=true;
+    console.log('Email A sent',r1);
+  } catch(e){console.error('Email A failed:',e);}
 
-  const[r1,r2]=await Promise.allSettled([
-    emailjs.send(EJ_SVC,EJ_TPL,{...emailA},EJ_KEY),
-    emailjs.send(EJ_SVC,EJ_TPL,{...emailB},EJ_KEY)
-  ]);
+  try{
+    const r2=await Promise.race([
+      emailjs.send(EJ_SVC,EJ_TPL,emailB,EJ_KEY),
+      new Promise((_,rej)=>setTimeout(()=>rej(new Error('timeout')),8000))
+    ]);
+    bOk=true;
+    console.log('Email B sent',r2);
+  } catch(e){console.error('Email B failed:',e);}
 
-  return{
-    aOk:r1.status==='fulfilled',
-    bOk:r2.status==='fulfilled'
-  };
+  return{aOk,bOk};
 }
 
 // ── AI MATCHING ──────────────────────────────────────────
