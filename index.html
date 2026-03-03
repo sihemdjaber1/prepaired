@@ -613,10 +613,11 @@ function updateNavForUser(){
 }
 
 async function signInWithGoogle(){
+  const base=window.location.origin+window.location.pathname;
   const{error}=await sb.auth.signInWithOAuth({
     provider:'google',
     options:{
-      redirectTo:window.location.href,
+      redirectTo:base,
       queryParams:{prompt:'select_account'}
     }
   });
