@@ -783,8 +783,8 @@ async function sendMatchEmails(pa, pb, meetLink, reason, score){
   };
 
   const[r1,r2]=await Promise.allSettled([
-    emailjs.send(EJ_SVC,EJ_TPL,emailA),
-    emailjs.send(EJ_SVC,EJ_TPL,emailB)
+    emailjs.send(EJ_SVC,EJ_TPL,{...emailA},EJ_KEY),
+    emailjs.send(EJ_SVC,EJ_TPL,{...emailB},EJ_KEY)
   ]);
 
   return{
@@ -838,8 +838,9 @@ async function runMatch(){
     if(!pa||!pb)continue;
 
     // Generate Google Meet link
-    const rid=Math.random().toString(36).substr(2,9);
-    const meetLink=`https://meet.google.com/${rid.substr(0,3)}-${rid.substr(3,4)}-${rid.substr(7,3)}`;
+    const alpha='abcdefghijkmnopqrstuvwxyz';
+    const rnd=(n)=>Array.from({length:n},()=>alpha[Math.floor(Math.random()*alpha.length)]).join('');
+    const meetLink=`https://meet.google.com/${rnd(3)}-${rnd(4)}-${rnd(3)}`;
 
     setLoader(true,`Sending emails to ${pa.name} & ${pb.name}…`,'');
 
