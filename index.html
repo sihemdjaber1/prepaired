@@ -605,20 +605,26 @@ function slotToUTCKey(slot, tz){
 }
 
 // Get UTC milliseconds for a given local hour on a given weekday in a timezone
+// Uses next real occurrence of that weekday from today
 function getUTCfromLocal(dayIndex,localHour,tz){
-  // Use 2024-01-01 week: Jan 1=Mon, Jan 2=Tue, ..., Jan 7=Sun
-  const dayOffset=dayIndex===0?6:dayIndex-1;
-  const dateStr=`2024-01-${String(1+dayOffset).padStart(2,'0')}`;
+  // Find next occurrence of dayIndex (0=Sun,1=Mon,...,6=Sat) from today
+  const today=new Date();
+  const current=today.getDay(); // 0=Sun..6=Sat
+  let diff=dayIndex-current;
+  if(diff<=0)diff+=7; // always future
+  const target=new Date(today);
+  target.setDate(today.getDate()+diff);
+  const year=target.getFullYear();
+  const month=String(target.getMonth()+1).padStart(2,'0');
+  const day=String(target.getDate()).padStart(2,'0');
+  const dateStr=`${year}-${month}-${day}`;
   const timeStr=`${String(localHour).padStart(2,'0')}:00:00`;
-  // Format: find what UTC time corresponds to localHour in tz on that date
-  // We do this by binary-searching or using the offset trick
-  const probe=new Date(`${dateStr}T${timeStr}Z`); // treat as UTC first
-  // Get what local time this UTC moment shows in tz
+  // Compute UTC offset for tz on that date
+  const probe=new Date(`${dateStr}T${timeStr}Z`);
   const shown=new Date(probe.toLocaleString('en-US',{timeZone:tz}));
-  const diff=probe-shown; // ms offset
-  // So local time = UTC + offset => UTC = local - offset
+  const diff2=probe-shown;
   const localMs=new Date(`${dateStr}T${timeStr}`).getTime();
-  return localMs+diff;
+  return localMs+diff2;
 }
 
 // Find shared slots by comparing UTC keys
@@ -913,12 +919,19 @@ async function sendMatchEmails(pa, pb, meetLink, reason, score){
 
   let displayA,displayB,sharedLabel;
   if(shared.length>0){
-    // Each person gets their own slot displayed in their own timezone
+    // Use the UTC timestamp to display correct local time for each person
     const match=shared[0];
-    displayA=formatSlotForTZ(match.slotA,tzA);
-    displayB=formatSlotForTZ(match.slotB,tzB);
-    const[sDay,sHour]=match.slotA.split('-');
-    sharedLabel=`${DAY_NAMES[sDay]||sDay} at ${sHour}`;
+    const utcMs=match.utc;
+    const utcDate=new Date(utcMs);
+    // Display in each person's timezone using the real UTC moment
+    const optTime={hour:'2-digit',minute:'2-digit',timeZone:'UTC'};
+    const timeA=new Date(utcMs).toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit',timeZone:tzA});
+    const dateA=new Date(utcMs).toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'long',timeZone:tzA});
+    const timeB=new Date(utcMs).toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit',timeZone:tzB});
+    const dateB=new Date(utcMs).toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'long',timeZone:tzB});
+    displayA={timeStr:timeA,dateStr:dateA};
+    displayB={timeStr:timeB,dateStr:dateB};
+    sharedLabel=`${dateA} at ${timeA} (your time)`;
   } else {
     const fallback={timeStr:'a convenient time',dateStr:'a mutually available day'};
     displayA=fallback; displayB=fallback; sharedLabel='TBD';
