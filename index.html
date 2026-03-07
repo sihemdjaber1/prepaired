@@ -570,18 +570,34 @@ const EJ_TPL='template_a4709zq';
 const EJ_KEY='P1LHt_pms0nuXgSYV';
 
 // ── SLOT → TIME HELPERS ──────────────────────────────────
-const SLOT_TIME={'AM':'10:30','PM':'15:00','Eve':'19:30'};
+// Slots defined in UTC reference hours
+const SLOT_UTC={'AM':9,'PM':13,'Eve':18};
 const DAY_NAMES={Mon:'Monday',Tue:'Tuesday',Wed:'Wednesday',Thu:'Thursday',Fri:'Friday',Sat:'Saturday',Sun:'Sunday'};
+const DAY_NUM={Monday:1,Tuesday:2,Wednesday:3,Thursday:4,Friday:5,Saturday:6,Sunday:0};
 
 function getSharedSlots(a,b){return a.avail.filter(s=>b.avail.includes(s));}
-function formatSlot(slot){
-  const[day,period]=slot.split('-');
-  return{day:DAY_NAMES[day]||day, period, time:SLOT_TIME[period]||'', label:`${DAY_NAMES[day]} ${period} (${SLOT_TIME[period]})`};
-}
-function nextOccurrence(dayName){
-  const days={Monday:1,Tuesday:2,Wednesday:3,Thursday:4,Friday:5,Saturday:6,Sunday:0};
+
+// Convert slot to local time for a given IANA timezone
+function slotToLocalTime(slot,tz){
+  const[dayCode,period]=slot.split('-');
+  const dayName=DAY_NAMES[dayCode]||dayCode;
+  const utcHour=SLOT_UTC[period]||18;
   const today=new Date();
-  const target=days[dayName];
+  const target=DAY_NUM[dayName];
+  const current=today.getUTCDay();
+  let diff=target-current;
+  if(diff<=0)diff+=7;
+  const next=new Date(today);
+  next.setUTCDate(today.getUTCDate()+diff);
+  next.setUTCHours(utcHour,0,0,0);
+  const timeStr=next.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit',timeZone:tz||'UTC'});
+  const dateStr=next.toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'long',timeZone:tz||'UTC'});
+  return{timeStr,dateStr,label:`${dayName} ${period}`};
+}
+
+function nextOccurrence(dayName){
+  const today=new Date();
+  const target=DAY_NUM[dayName];
   const current=today.getDay();
   let diff=target-current;
   if(diff<=0)diff+=7;
@@ -715,9 +731,26 @@ async function submitProfile(){
   const btn=document.getElementById('submit-btn');
   btn.disabled=true;btn.textContent='Saving…';
 
+  // Derive timezone from city using free geocoding API
+  let timezone='';
+  try{
+    const geo=await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(city)}&count=1&language=en&format=json`);
+    const gd=await geo.json();
+    if(gd.results&&gd.results[0]){
+      const{latitude,longitude}=gd.results[0];
+      const tz=await fetch(`https://timeapi.io/api/timezone/coordinate?latitude=${latitude}&longitude=${longitude}`);
+      const tzd=await tz.json();
+      if(tzd.timeZone)timezone=tzd.timeZone;
+    }
+  }catch(e){console.warn('Timezone lookup failed:',e);}
+  if(!timezone){
+    btn.disabled=false;btn.textContent='Find my partner →';
+    return show('We couldn\'t find your city. Please enter a larger nearby city (e.g. "Paris" instead of a small town).');
+  }
+
   const profile={
     user_id:currentUser.id,
-    email,name,city,level,
+    email,name,city,level,timezone,
     types,formats,langs,firms,avail,
     status:'waiting',
     updated_at:new Date().toISOString()
@@ -749,20 +782,50 @@ function cmp(a,b){
 // ── SEND MATCH EMAILS ────────────────────────────────────
 async function sendMatchEmails(pa, pb, meetLink, reason, score){
   const shared=getSharedSlots(pa,pb);
-  const slot=shared.length>0?formatSlot(shared[0]):{day:'a mutually available day',period:'',time:'',label:'a time that works for both of you'};
-  const suggestedDate=slot.day!=='a mutually available day'?nextOccurrence(slot.day):slot.day;
 
-  const base={
-    match_reason: reason,
-    match_score: score,
-    meet_link: meetLink,
-    shared_slot: slot.label,
-    suggested_day: suggestedDate,
-    suggested_time: slot.time||'a convenient time'
+  // Convert shared slot to each person's local timezone
+  const tzA=pa.timezone||'Europe/Paris';
+  const tzB=pb.timezone||'Europe/Paris';
+
+  let aTime,bTime,sharedLabel;
+  if(shared.length>0){
+    const slotKey=shared[0];
+    const localA=slotToLocalTime(slotKey,tzA);
+    const localB=slotToLocalTime(slotKey,tzB);
+    aTime=localA;
+    bTime=localB;
+    sharedLabel=localA.label;
+  } else {
+    const fallback={timeStr:'a convenient time',dateStr:'a mutually available day',label:'TBD'};
+    aTime=fallback; bTime=fallback; sharedLabel='TBD';
+  }
+
+  const emailA={
+    user_name:pa.name, to_email:pa.email,
+    partner_name:pb.name, partner_initial:pb.name[0].toUpperCase(),
+    partner_level:pb.level,
+    partner_firms:(pb.firms||[]).join(', '),
+    partner_format:(pb.formats||[]).join(', ')||(pb.types||[]).join(', '),
+    partner_langs:(pb.langs||[]).join(', '),
+    partner_city:pb.city,
+    match_reason:reason, match_score:score, meet_link:meetLink,
+    shared_slot:sharedLabel,
+    suggested_day:aTime.dateStr,
+    suggested_time:aTime.timeStr
   };
-
-  const emailA={...base,user_name:pa.name,to_email:pa.email,partner_name:pb.name,partner_initial:pb.name[0].toUpperCase(),partner_level:pb.level,partner_firms:(pb.firms||[]).join(', '),partner_format:(pb.formats||[]).join(', ')||( pb.types||[]).join(', '),partner_langs:(pb.langs||[]).join(', '),partner_city:pb.city};
-  const emailB={...base,user_name:pb.name,to_email:pb.email,partner_name:pa.name,partner_initial:pa.name[0].toUpperCase(),partner_level:pa.level,partner_firms:(pa.firms||[]).join(', '),partner_format:(pa.formats||[]).join(', ')||(pa.types||[]).join(', '),partner_langs:(pa.langs||[]).join(', '),partner_city:pa.city};
+  const emailB={
+    user_name:pb.name, to_email:pb.email,
+    partner_name:pa.name, partner_initial:pa.name[0].toUpperCase(),
+    partner_level:pa.level,
+    partner_firms:(pa.firms||[]).join(', '),
+    partner_format:(pa.formats||[]).join(', ')||(pa.types||[]).join(', '),
+    partner_langs:(pa.langs||[]).join(', '),
+    partner_city:pa.city,
+    match_reason:reason, match_score:score, meet_link:meetLink,
+    shared_slot:sharedLabel,
+    suggested_day:bTime.dateStr,
+    suggested_time:bTime.timeStr
+  };
 
   let aOk=false,bOk=false;
   try{
