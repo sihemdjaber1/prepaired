@@ -761,8 +761,8 @@ async function sendMatchEmails(pa, pb, meetLink, reason, score){
     suggested_time: slot.time||'a convenient time'
   };
 
-  const emailA={...base,user_name:pa.name,to_email:pa.email,partner_name:pb.name,partner_level:pb.level,partner_firms:(pb.firms||[]).join(', '),partner_format:(pb.formats||[]).join(', ')||( pb.types||[]).join(', '),partner_langs:(pb.langs||[]).join(', '),partner_city:pb.city};
-  const emailB={...base,user_name:pb.name,to_email:pb.email,partner_name:pa.name,partner_level:pa.level,partner_firms:(pa.firms||[]).join(', '),partner_format:(pa.formats||[]).join(', ')||(pa.types||[]).join(', '),partner_langs:(pa.langs||[]).join(', '),partner_city:pa.city};
+  const emailA={...base,user_name:pa.name,to_email:pa.email,partner_name:pb.name,partner_initial:pb.name[0].toUpperCase(),partner_level:pb.level,partner_firms:(pb.firms||[]).join(', '),partner_format:(pb.formats||[]).join(', ')||( pb.types||[]).join(', '),partner_langs:(pb.langs||[]).join(', '),partner_city:pb.city};
+  const emailB={...base,user_name:pb.name,to_email:pb.email,partner_name:pa.name,partner_initial:pa.name[0].toUpperCase(),partner_level:pa.level,partner_firms:(pa.firms||[]).join(', '),partner_format:(pa.formats||[]).join(', ')||(pa.types||[]).join(', '),partner_langs:(pa.langs||[]).join(', '),partner_city:pa.city};
 
   let aOk=false,bOk=false;
   try{
