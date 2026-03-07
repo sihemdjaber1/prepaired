@@ -266,8 +266,8 @@ tr:hover td{background:rgba(255,31,95,0.03);}
 <nav>
   <div class="logo" onclick="showL()"><div class="logo-dot"></div>PrepPaired</div>
   <div class="nav-r">
-    <a class="nav-link" href="#" onclick="scrollTo('how');return false">How it works</a>
-    <a class="nav-link" href="#" onclick="scrollTo('firms');return false">Firms</a>
+    <a class="nav-link" href="#" onclick="scrollToSection('how');return false">How it works</a>
+    <a class="nav-link" href="#" onclick="scrollToSection('firms');return false">Firms</a>
     <div class="nav-user" id="nav-user">
       <img class="nav-avatar" id="nav-avatar" src="" alt="">
       <span class="nav-uname" id="nav-uname"></span>
@@ -719,7 +719,7 @@ function showSignup(){
   prefillUser();
 }
 function showAdmin(){['lv','sv','av','pv'].forEach((id,i)=>document.getElementById(id).style.display=i===2?'block':'none');window.scrollTo({top:0,behavior:'smooth'});loadAdmin();}
-function scrollTo(id){document.getElementById(id)?.scrollIntoView({behavior:'smooth'});}
+function scrollToSection(id){document.getElementById(id)?.scrollIntoView({behavior:'smooth'});}
 
 let abf='';
 document.addEventListener('keypress',e=>{abf+=e.key;if(abf.endsWith('admin'))showAdmin();if(abf.length>10)abf=abf.slice(-10);});
