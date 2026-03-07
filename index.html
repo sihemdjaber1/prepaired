@@ -636,7 +636,7 @@ function getSharedSlots(a,b){
     for(const sb of (b.avail||[])){
       const utcA=getUTCfromLocal(DAY_NUM[sa.split('-')[0]],SLOT_LOCAL_HOUR[sa.split('-')[1]],tzA);
       const utcB=getUTCfromLocal(DAY_NUM[sb.split('-')[0]],SLOT_LOCAL_HOUR[sb.split('-')[1]],tzB);
-      if(utcA===utcB||Math.abs(utcA-utcB)<1800000){ // within 30 min
+      if(utcA===utcB||Math.abs(utcA-utcB)<7200000){ // within 120 min (handles DST + half-hour timezones)
         matched.push({slotA:sa,slotB:sb,utc:utcA});
       }
     }
@@ -988,7 +988,7 @@ async function sendMatchEmails(pa, pb, meetLink, reason, score){
 
 // ── AI MATCHING ──────────────────────────────────────────
 async function runMatch(){
-  setLoader(true,'Running matching…','Scoring compatibility across all waiting profiles');
+  setLoader(true,'Running AI matching…','Scoring compatibility across all waiting profiles');
   const{data:waiting,error}=await sb.from('profiles').select('*').eq('status','waiting');
   if(error||!waiting||waiting.length<2){
     setLoader(false);
@@ -999,19 +999,26 @@ async function runMatch(){
   const sm=waiting.map(p=>({id:p.user_id,name:p.name,level:p.level,langs:p.langs,firms:p.firms.slice(0,4),types:p.types,formats:p.formats||[],avail:p.avail.slice(0,8),city:p.city,timezone:p.timezone||'Europe/Paris',email:p.email}));
   let pairs=[];
 
-  // Greedy matching by compatibility score
-  const used=new Set();
-  for(let i=0;i<waiting.length;i++){
-    if(used.has(waiting[i].user_id))continue;
-    let bj=-1,bs=-1;
-    for(let j=i+1;j<waiting.length;j++){
-      if(used.has(waiting[j].user_id))continue;
-      const sc=cmp(waiting[i],waiting[j]);
-      if(sc>bs){bs=sc;bj=j;}
-    }
-    if(bj>=0){
-      pairs.push({a:waiting[i].user_id,b:waiting[bj].user_id,score:bs,reason:'Matched by compatibility score'});
-      used.add(waiting[i].user_id);used.add(waiting[bj].user_id);
+  try{
+    const r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1000,system:'Matching algorithm for consulting interview prep. Find optimal pairs prioritising: same level, shared languages, same case format (interviewer-led vs interviewee-led), overlapping firms, availability overlap. Return ONLY valid JSON array: [{"a":"user_id_1","b":"user_id_2","reason":"one sentence","score":0-100}]. No person used twice.',messages:[{role:'user',content:'Match these profiles: '+JSON.stringify(sm)}]})});
+    const data=await r.json();
+    const txt=data.content.filter(c=>c.type==='text').map(c=>c.text).join('');
+    pairs=JSON.parse(txt.replace(/```json|```/g,'').trim());
+  } catch(e){
+    // Fallback: greedy matching
+    const used=new Set();
+    for(let i=0;i<waiting.length;i++){
+      if(used.has(waiting[i].user_id))continue;
+      let bj=-1,bs=-1;
+      for(let j=i+1;j<waiting.length;j++){
+        if(used.has(waiting[j].user_id))continue;
+        const sc=cmp(waiting[i],waiting[j]);
+        if(sc>bs){bs=sc;bj=j;}
+      }
+      if(bj>=0){
+        pairs.push({a:waiting[i].user_id,b:waiting[bj].user_id,score:bs,reason:'Matched by compatibility score'});
+        used.add(waiting[i].user_id);used.add(waiting[bj].user_id);
+      }
     }
   }
 
