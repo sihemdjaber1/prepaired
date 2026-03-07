@@ -931,7 +931,7 @@ async function autoMatch(newProfile){
       meetLink=`https://whereby.com/prepaired-${rnd(8)}`;
     }
     const reason=`Same level, shared language & availability`;
-    await sendMatchEmails(newProfile,best,meetLink,reason,bestScore);
+    await sendMatchEmails(newProfile,best,meetLink,reason,displayScore(newProfile,best));
     await sb.from('profiles').update({status:'matched',matched_with:best.user_id,meet_link:meetLink,matched_at:new Date().toISOString()}).eq('user_id',newProfile.user_id);
     await sb.from('profiles').update({status:'matched',matched_with:newProfile.user_id,meet_link:meetLink,matched_at:new Date().toISOString()}).eq('user_id',best.user_id);
     console.log('Auto-matched:',newProfile.name,'↔',best.name,'score:',bestScore);
@@ -967,6 +967,19 @@ function cmp(a,b){
   s+=Math.min(a.firms.filter(f=>b.firms.includes(f)).length*15,45);
   s+=Math.min(getSharedSlots(a,b).length*5,35);
   s+=Math.min(a.langs.filter(l=>b.langs.includes(l)).length*10,20);
+  return Math.min(s,100);
+}
+function displayScore(a,b){
+  // Passing all 4 hard blocks already = excellent match, start high
+  let s=82;
+  // Extra shared languages beyond the 1st
+  const langs=a.langs.filter(l=>b.langs.includes(l)).length;
+  s+=langs>=2?4:0;
+  // Firm overlap bonus: each shared firm = +2, max +10
+  s+=Math.min(a.firms.filter(f=>b.firms.includes(f)).length*2,10);
+  // Slot richness: more overlap = easier to schedule
+  const slots=getSharedSlots(a,b).length;
+  s+=slots>=8?4:slots>=4?2:0;
   return Math.min(s,100);
 }
 
@@ -1113,7 +1126,7 @@ async function runMatch(){
     setLoader(true,`Sending emails to ${pa.name} & ${pb.name}…`,'');
 
     // Send emails to both
-    const{aOk,bOk}=await sendMatchEmails(pa,pb,meetLink,pair.reason||'Compatible match',pair.score||0);
+    const{aOk,bOk}=await sendMatchEmails(pa,pb,meetLink,pair.reason||'Compatible match',displayScore(pa,pb));
 
     // Update both profiles in Supabase
     await sb.from('profiles').update({status:'matched',matched_with:pb.user_id,meet_link:meetLink,matched_at:new Date().toISOString()}).eq('user_id',pa.user_id);
@@ -1127,7 +1140,7 @@ async function runMatch(){
         <div class="pi"><div class="pn">${pa.name} ${emailBadge(aOk)}</div><div class="pd_">${pa.level} · ${pa.city}</div></div>
         <div class="parr">↔</div>
         <div class="pi"><div class="pn">${pb.name} ${emailBadge(bOk)}</div><div class="pd_">${pb.level} · ${pb.city}</div></div>
-        <div class="psc">${pair.score||'—'}/100</div>
+        <div class="psc">${displayScore(pa,pb)}/100</div>
       </div>
       <div class="pr">↳ ${pair.reason||''} · <a href="${meetLink}" target="_blank" style="color:var(--pink2)">Meet link ↗</a></div>`;
   }
