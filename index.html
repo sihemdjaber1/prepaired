@@ -719,7 +719,19 @@ function showSignup(){
   prefillUser();
 }
 function showAdmin(){['lv','sv','av','pv'].forEach((id,i)=>document.getElementById(id).style.display=i===2?'block':'none');window.scrollTo({top:0,behavior:'smooth'});loadAdmin();}
-function scrollToSection(id){document.getElementById(id)?.scrollIntoView({behavior:'smooth'});}
+function scrollToSection(id){
+  const lv=document.getElementById('lv');
+  if(lv&&lv.style.display==='none'){
+    ['lv','sv','av','pv'].forEach((vid,i)=>document.getElementById(vid).style.display=i===0?'block':'none');
+  }
+  setTimeout(()=>{
+    const el=document.getElementById(id);
+    if(el){
+      el.classList.add('vi'); // force visible in case rv not triggered
+      el.scrollIntoView({behavior:'smooth'});
+    }
+  },50);
+}
 
 let abf='';
 document.addEventListener('keypress',e=>{abf+=e.key;if(abf.endsWith('admin'))showAdmin();if(abf.length>10)abf=abf.slice(-10);});
