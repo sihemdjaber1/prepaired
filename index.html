@@ -960,7 +960,7 @@ async function runMatch(){
     return;
   }
 
-  const sm=waiting.map(p=>({id:p.user_id,name:p.name,level:p.level,langs:p.langs,firms:p.firms.slice(0,4),types:p.types,formats:p.formats||[],avail:p.avail.slice(0,8),city:p.city}));
+  const sm=waiting.map(p=>({id:p.user_id,name:p.name,level:p.level,langs:p.langs,firms:p.firms.slice(0,4),types:p.types,formats:p.formats||[],avail:p.avail.slice(0,8),city:p.city,timezone:p.timezone||'Europe/Paris',email:p.email}));
   let pairs=[];
 
   try{
@@ -993,6 +993,14 @@ async function runMatch(){
     const pa=waiting.find(p=>p.user_id===pair.a);
     const pb=waiting.find(p=>p.user_id===pair.b);
     if(!pa||!pb)continue;
+
+    // Skip if no shared timezone slots
+    const sharedCheck=getSharedSlots(pa,pb);
+    if(sharedCheck.length===0){
+      console.warn(`No shared slots between ${pa.name} and ${pb.name}, skipping`);
+      // Reset both to waiting so they can be matched later
+      continue;
+    }
 
     // Create real Whereby room via Supabase Edge Function (bypasses CORS)
     let meetLink='';
