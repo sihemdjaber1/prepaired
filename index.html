@@ -636,7 +636,7 @@ function getSharedSlots(a,b){
     for(const sb of (b.avail||[])){
       const utcA=getUTCfromLocal(DAY_NUM[sa.split('-')[0]],SLOT_LOCAL_HOUR[sa.split('-')[1]],tzA);
       const utcB=getUTCfromLocal(DAY_NUM[sb.split('-')[0]],SLOT_LOCAL_HOUR[sb.split('-')[1]],tzB);
-      if(utcA===utcB||Math.abs(utcA-utcB)<7200000){ // within 120 min (handles DST + half-hour timezones)
+      if(Math.abs(utcA-utcB)<=1800000){ // within 30 min (handles half-hour timezones like India/Iran)
         // Verify both local hours are between 8h and 22h
         const localHourA=SLOT_LOCAL_HOUR[sa.split('-')[1]];
         const localHourB=SLOT_LOCAL_HOUR[sb.split('-')[1]];
@@ -817,7 +817,7 @@ function ga(id){return[...document.querySelectorAll('#'+id+' .pp.on')].map(p=>p.
 
 // ── AVAILABILITY GRID ────────────────────────────────────
 const DAYS=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
-const SLOTS=['8h','10h','12h','14h','16h','18h','20h','22h'];
+const SLOTS=['8h','9h','10h','11h','12h','13h','14h','15h','16h','17h','18h','19h','20h','21h','22h'];
 function buildAv(){
   const container=document.getElementById('avs');
   if(container.children.length)return;
