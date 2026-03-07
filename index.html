@@ -452,7 +452,11 @@ tr:hover td{background:rgba(255,31,95,0.03);}
       <div class="ff"><label class="fl">Email <sup>*</sup></label><input type="email" id="fe" placeholder="your@email.com" disabled></div>
       <div class="tcf">
         <div class="ff"><label class="fl">First name <sup>*</sup></label><input type="text" id="fn" placeholder="Your first name"></div>
-        <div class="ff"><label class="fl">City <sup>*</sup></label><input type="text" id="fc2" placeholder="Paris, London…"><div class="fh">Used to align timezones</div></div>
+        <div class="ff"><label class="fl">City <sup>*</sup></label><input type="text" id="fc2" placeholder="Paris, London…" oninput="detectTZ(this.value)"><div class="fh">Used to align timezones</div>
+          <div id="tz-display" style="display:none;margin-top:0.5rem;padding:0.5rem 0.8rem;background:rgba(255,31,95,0.05);border:1px solid rgba(255,31,95,0.15);border-radius:6px;font-size:0.7rem;color:var(--pink2);display:flex;align-items:center;gap:0.4rem;">
+            <span>🌍</span><span id="tz-label">Detecting…</span>
+          </div>
+        </div>
       </div>
     </div>
     <div class="fb"><span class="fbl">02 — Your level</span>
@@ -570,40 +574,90 @@ const EJ_TPL='template_a4709zq';
 const EJ_KEY='P1LHt_pms0nuXgSYV';
 
 // ── SLOT → TIME HELPERS ──────────────────────────────────
-// Slots defined in UTC reference hours
-const SLOT_UTC={'AM':9,'PM':13,'Eve':18};
+// ── TIMEZONE-AWARE SLOT MATCHING ────────────────────────
+// Each slot (e.g. Mon-AM) means a LOCAL time for that user.
+// We convert to UTC to find real overlaps, then display each person's local time.
+
+const SLOT_LOCAL_HOUR={'AM':10,'PM':14,'Eve':19}; // local hour for each period
 const DAY_NAMES={Mon:'Monday',Tue:'Tuesday',Wed:'Wednesday',Thu:'Thursday',Fri:'Friday',Sat:'Saturday',Sun:'Sunday'};
-const DAY_NUM={Monday:1,Tuesday:2,Wednesday:3,Thursday:4,Friday:5,Saturday:6,Sunday:0};
+const DAY_NUM={Mon:1,Tue:2,Wed:3,Thu:4,Fri:5,Sat:6,Sun:0,Monday:1,Tuesday:2,Wednesday:3,Thursday:4,Friday:5,Saturday:6,Sunday:0};
 
-function getSharedSlots(a,b){return a.avail.filter(s=>b.avail.includes(s));}
-
-// Convert slot to local time for a given IANA timezone
-function slotToLocalTime(slot,tz){
+// Convert a slot string + timezone to a UTC timestamp key "DAY:UTCHOUR"
+// We use a fixed reference week (Mon=day1..Sun=day7) to compare across users
+function slotToUTCKey(slot, tz){
   const[dayCode,period]=slot.split('-');
-  const dayName=DAY_NAMES[dayCode]||dayCode;
-  const utcHour=SLOT_UTC[period]||18;
-  const today=new Date();
-  const target=DAY_NUM[dayName];
-  const current=today.getUTCDay();
-  let diff=target-current;
-  if(diff<=0)diff+=7;
-  const next=new Date(today);
-  next.setUTCDate(today.getUTCDate()+diff);
-  next.setUTCHours(utcHour,0,0,0);
-  const timeStr=next.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit',timeZone:tz||'UTC'});
-  const dateStr=next.toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'long',timeZone:tz||'UTC'});
-  return{timeStr,dateStr,label:`${dayName} ${period}`};
+  const localHour=SLOT_LOCAL_HOUR[period];
+  if(localHour===undefined)return null;
+  const dayIndex=DAY_NUM[dayCode]; // 0=Sun..6=Sat
+  // Build a reference date: use 2024-01-01 (Monday) as anchor week
+  // dayIndex: Mon=1,Tue=2,...,Sun=0 → offset from Monday
+  const monOffset=dayIndex===0?6:dayIndex-1; // days from Monday
+  const refDate=new Date(`2024-01-0${1+monOffset}T${String(localHour).padStart(2,'0')}:00:00`);
+  // Convert local time in tz to UTC using Intl
+  try{
+    // Get UTC equivalent by formatting in tz and computing offset
+    const localStr=refDate.toLocaleString('en-CA',{timeZone:tz,hour12:false,
+      year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'});
+    // localStr is what the clock shows in `tz` at refDate (which is already local)
+    // Instead: create date as if it's local time in tz
+    const utcMs=getUTCfromLocal(dayIndex,localHour,tz);
+    return utcMs;
+  }catch(e){return null;}
 }
 
-function nextOccurrence(dayName){
+// Get UTC milliseconds for a given local hour on a given weekday in a timezone
+function getUTCfromLocal(dayIndex,localHour,tz){
+  // Use 2024-01-01 week: Jan 1=Mon, Jan 2=Tue, ..., Jan 7=Sun
+  const dayOffset=dayIndex===0?6:dayIndex-1;
+  const dateStr=`2024-01-${String(1+dayOffset).padStart(2,'0')}`;
+  const timeStr=`${String(localHour).padStart(2,'0')}:00:00`;
+  // Format: find what UTC time corresponds to localHour in tz on that date
+  // We do this by binary-searching or using the offset trick
+  const probe=new Date(`${dateStr}T${timeStr}Z`); // treat as UTC first
+  // Get what local time this UTC moment shows in tz
+  const shown=new Date(probe.toLocaleString('en-US',{timeZone:tz}));
+  const diff=probe-shown; // ms offset
+  // So local time = UTC + offset => UTC = local - offset
+  const localMs=new Date(`${dateStr}T${timeStr}`).getTime();
+  return localMs+diff;
+}
+
+// Find shared slots by comparing UTC keys
+function getSharedSlots(a,b){
+  const tzA=a.timezone||'Europe/Paris';
+  const tzB=b.timezone||'Europe/Paris';
+  const matched=[];
+  for(const sa of (a.avail||[])){
+    for(const sb of (b.avail||[])){
+      const utcA=getUTCfromLocal(DAY_NUM[sa.split('-')[0]],SLOT_LOCAL_HOUR[sa.split('-')[1]],tzA);
+      const utcB=getUTCfromLocal(DAY_NUM[sb.split('-')[0]],SLOT_LOCAL_HOUR[sb.split('-')[1]],tzB);
+      if(utcA===utcB||Math.abs(utcA-utcB)<1800000){ // within 30 min
+        matched.push({slotA:sa,slotB:sb,utc:utcA});
+      }
+    }
+  }
+  return matched;
+}
+
+// Format a slot for display in a given timezone
+function formatSlotForTZ(slot,tz){
+  const[dayCode,period]=slot.split('-');
+  const localHour=SLOT_LOCAL_HOUR[period];
+  const dayIndex=DAY_NUM[dayCode];
+  const dayOffset=dayIndex===0?6:dayIndex-1;
+  // Find next real occurrence of this weekday
   const today=new Date();
-  const target=DAY_NUM[dayName];
   const current=today.getDay();
+  const target=dayIndex;
   let diff=target-current;
   if(diff<=0)diff+=7;
   const next=new Date(today);
   next.setDate(today.getDate()+diff);
-  return next.toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'long'});
+  next.setHours(localHour,0,0,0);
+  // Display in their timezone
+  const timeStr=next.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit',timeZone:tz});
+  const dateStr=next.toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'long',timeZone:tz});
+  return{timeStr,dateStr};
 }
 
 // ── AUTH STATE ───────────────────────────────────────────
@@ -641,10 +695,10 @@ async function signInWithGoogle(){
 }
 
 async function signOut(){
-  await sb.auth.signOut();
+  await sb.auth.signOut({scope:'local'});
   currentUser=null;
-  updateNavForUser();
-  showL();
+  // Clear any auth tokens from URL and force clean reload
+  window.location.href=window.location.origin+window.location.pathname;
 }
 
 function handleCTA(){
@@ -684,6 +738,7 @@ async function prefillUser(){
   const{data}=await sb.from('profiles').select('*').eq('user_id',currentUser.id).single();
   if(data){
     document.getElementById('fc2').value=data.city||'';
+    if(data.city)detectTZ(data.city);
     document.getElementById('flv').value=data.level||'';
     // Re-select pills
     (data.types||[]).forEach(v=>{const b=document.querySelector(`#ct [data-v="${v}"]`);if(b){b.classList.add('on');if(v==='business_case'||v==='both')document.getElementById('cff').classList.add('show');}});
@@ -695,6 +750,43 @@ async function prefillUser(){
 }
 
 // ── PILLS ────────────────────────────────────────────────
+// ── TIMEZONE DETECTION FROM CITY ────────────────────────
+let tzTimer=null;
+async function detectTZ(cityVal){
+  const display=document.getElementById('tz-display');
+  const label=document.getElementById('tz-label');
+  if(!cityVal||cityVal.length<2){display.style.display='none';return;}
+  display.style.display='flex';
+  label.textContent='Detecting…';
+  clearTimeout(tzTimer);
+  tzTimer=setTimeout(async()=>{
+    try{
+      const geo=await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(cityVal)}&count=1&language=en&format=json`);
+      const gd=await geo.json();
+      if(gd.results&&gd.results[0]){
+        const{latitude,longitude,name,country}=gd.results[0];
+        const tz=await fetch(`https://timeapi.io/api/timezone/coordinate?latitude=${latitude}&longitude=${longitude}`);
+        const tzd=await tz.json();
+        if(tzd.timeZone){
+          // Show current local time in that timezone
+          const now=new Date();
+          const localTime=now.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit',timeZone:tzd.timeZone});
+          label.textContent=`${name}, ${country} · ${tzd.timeZone} · now ${localTime}`;
+          display.style.display='flex';
+        } else {
+          label.textContent='City not found — try a larger city';
+          display.style.color='#FCA5A5';
+        }
+      } else {
+        label.textContent='City not found — try a larger city';
+        display.style.color='#FCA5A5';
+      }
+    }catch(e){
+      label.textContent='Could not detect timezone';
+    }
+  },600); // debounce 600ms
+}
+
 function tp(b){b.classList.toggle('on');}
 function ps(b,g){document.querySelectorAll('#'+g+' .pp').forEach(p=>p.classList.remove('on'));b.classList.add('on');}
 function pt(b){document.querySelectorAll('#ct .pp').forEach(p=>p.classList.remove('on'));b.classList.add('on');const v=b.dataset.v;document.getElementById('cff').classList[v==='business_case'||v==='both'?'add':'remove']('show');}
@@ -775,29 +867,26 @@ function cmp(a,b){
   s+=Math.min(a.firms.filter(f=>b.firms.includes(f)).length*8,20);
   s+=(a.types.filter(t=>b.types.includes(t)).length||(a.types.includes('both')||b.types.includes('both')?1:0))*10;
   s+=(a.formats||[]).filter(f=>(b.formats||[]).includes(f)).length*10;
-  s+=Math.min(a.avail.filter(v=>b.avail.includes(v)).length*2,10);
+  s+=Math.min(getSharedSlots(a,b).length*2,10);
   return Math.min(s,100);
 }
 
 // ── SEND MATCH EMAILS ────────────────────────────────────
 async function sendMatchEmails(pa, pb, meetLink, reason, score){
-  const shared=getSharedSlots(pa,pb);
-
-  // Convert shared slot to each person's local timezone
   const tzA=pa.timezone||'Europe/Paris';
   const tzB=pb.timezone||'Europe/Paris';
+  const shared=getSharedSlots(pa,pb); // returns [{slotA, slotB, utc}]
 
-  let aTime,bTime,sharedLabel;
+  let displayA,displayB,sharedLabel;
   if(shared.length>0){
-    const slotKey=shared[0];
-    const localA=slotToLocalTime(slotKey,tzA);
-    const localB=slotToLocalTime(slotKey,tzB);
-    aTime=localA;
-    bTime=localB;
-    sharedLabel=localA.label;
+    // Each person gets their own slot displayed in their own timezone
+    const match=shared[0];
+    displayA=formatSlotForTZ(match.slotA,tzA);
+    displayB=formatSlotForTZ(match.slotB,tzB);
+    sharedLabel=`${DAY_NAMES[match.slotA.split('-')[0]]||match.slotA.split('-')[0]} ${match.slotA.split('-')[1]}`;
   } else {
-    const fallback={timeStr:'a convenient time',dateStr:'a mutually available day',label:'TBD'};
-    aTime=fallback; bTime=fallback; sharedLabel='TBD';
+    const fallback={timeStr:'a convenient time',dateStr:'a mutually available day'};
+    displayA=fallback; displayB=fallback; sharedLabel='TBD';
   }
 
   const emailA={
@@ -810,8 +899,8 @@ async function sendMatchEmails(pa, pb, meetLink, reason, score){
     partner_city:pb.city,
     match_reason:reason, match_score:score, meet_link:meetLink,
     shared_slot:sharedLabel,
-    suggested_day:aTime.dateStr,
-    suggested_time:aTime.timeStr
+    suggested_day:displayA.dateStr,
+    suggested_time:displayA.timeStr
   };
   const emailB={
     user_name:pb.name, to_email:pb.email,
@@ -823,8 +912,8 @@ async function sendMatchEmails(pa, pb, meetLink, reason, score){
     partner_city:pa.city,
     match_reason:reason, match_score:score, meet_link:meetLink,
     shared_slot:sharedLabel,
-    suggested_day:bTime.dateStr,
-    suggested_time:bTime.timeStr
+    suggested_day:displayB.dateStr,
+    suggested_time:displayB.timeStr
   };
 
   let aOk=false,bOk=false;
