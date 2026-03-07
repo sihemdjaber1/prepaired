@@ -518,9 +518,8 @@ tr:hover td{background:rgba(255,31,95,0.03);}
     </div>
     <div class="fb"><span class="fbl">05 — Availability</span>
       <div class="ff"><label class="fl">When are you free? <sup>*</sup></label>
-        <div class="fh" style="margin-bottom:0.7rem">AM = 9–12 · PM = 13–17 · Eve = 18–21</div>
-        <div class="ag" id="avh" style="margin-bottom:0.25rem"></div>
-        <div class="ag" id="avs"></div>
+        <div class="fh" style="margin-bottom:0.7rem">Select all times you're available — we'll find your best overlap</div>
+        <div id="avs" style="margin-top:0.5rem;"></div>
       </div>
     </div>
     <button class="sub" id="submit-btn" onclick="submitProfile()">Find my partner →</button>
@@ -578,7 +577,7 @@ const EJ_KEY='P1LHt_pms0nuXgSYV';
 // Each slot (e.g. Mon-AM) means a LOCAL time for that user.
 // We convert to UTC to find real overlaps, then display each person's local time.
 
-const SLOT_LOCAL_HOUR={'AM':10,'PM':14,'Eve':19}; // local hour for each period
+const SLOT_LOCAL_HOUR={'8h':8,'9h':9,'10h':10,'11h':11,'12h':12,'13h':13,'14h':14,'15h':15,'16h':16,'17h':17,'18h':18,'19h':19,'20h':20,'21h':21,'22h':22};
 const DAY_NAMES={Mon:'Monday',Tue:'Tuesday',Wed:'Wednesday',Thu:'Thursday',Fri:'Friday',Sat:'Saturday',Sun:'Sunday'};
 const DAY_NUM={Mon:1,Tue:2,Wed:3,Thu:4,Fri:5,Sat:6,Sun:0,Monday:1,Tuesday:2,Wednesday:3,Thursday:4,Friday:5,Saturday:6,Sunday:0};
 
@@ -757,6 +756,7 @@ async function prefillUser(){
     (data.formats||[]).forEach(v=>{const b=document.querySelector(`#cf3 [data-v="${v}"]`);if(b)b.classList.add('on');});
     (data.langs||[]).forEach(v=>{const b=document.querySelector(`#cl [data-v="${v}"]`);if(b)b.classList.add('on');});
     (data.firms||[]).forEach(v=>{const b=document.querySelector(`#cfm [data-v="${v}"]`);if(b)b.classList.add('on');});
+    buildAv();
     (data.avail||[]).forEach(k=>{const b=document.querySelector(`.ab[data-k="${k}"]`);if(b)b.classList.add('on');});
   }
 }
@@ -805,12 +805,34 @@ function pt(b){document.querySelectorAll('#ct .pp').forEach(p=>p.classList.remov
 function ga(id){return[...document.querySelectorAll('#'+id+' .pp.on')].map(p=>p.dataset.v);}
 
 // ── AVAILABILITY GRID ────────────────────────────────────
-const DAYS=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'],SLOTS=['AM','PM','Eve'];
+const DAYS=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+const SLOTS=['8h','10h','12h','14h','16h','18h','20h','22h'];
 function buildAv(){
-  const h=document.getElementById('avh'),s=document.getElementById('avs');
-  if(h.children.length)return;
-  DAYS.forEach(d=>{const e=document.createElement('div');e.className='ah';e.textContent=d;h.appendChild(e);});
-  SLOTS.forEach(sl=>DAYS.forEach(dy=>{const b=document.createElement('button');b.className='ab';b.textContent=sl;b.dataset.k=dy+'-'+sl;b.onclick=()=>b.classList.toggle('on');s.appendChild(b);}));
+  const container=document.getElementById('avs');
+  if(container.children.length)return;
+  // Header row
+  const headerRow=document.createElement('div');
+  headerRow.style.cssText='display:grid;grid-template-columns:36px repeat(7,1fr);gap:3px;margin-bottom:4px;';
+  headerRow.innerHTML='<div></div>'+DAYS.map(d=>`<div style="text-align:center;font-size:0.62rem;color:var(--g);font-weight:600;">${d}</div>`).join('');
+  container.appendChild(headerRow);
+  // Slot rows
+  SLOTS.forEach(sl=>{
+    const row=document.createElement('div');
+    row.style.cssText='display:grid;grid-template-columns:36px repeat(7,1fr);gap:3px;margin-bottom:3px;';
+    const label=document.createElement('div');
+    label.style.cssText='display:flex;align-items:center;justify-content:flex-end;padding-right:6px;font-size:0.58rem;color:var(--g);';
+    label.textContent=sl;
+    row.appendChild(label);
+    DAYS.forEach(dy=>{
+      const b=document.createElement('button');
+      b.className='ab';
+      b.dataset.k=dy+'-'+sl;
+      b.onclick=()=>b.classList.toggle('on');
+      b.style.cssText='padding:0.3rem 0;font-size:0;height:22px;';
+      row.appendChild(b);
+    });
+    container.appendChild(row);
+  });
 }
 function getAv(){return[...document.querySelectorAll('.ab.on')].map(b=>b.dataset.k);}
 
@@ -895,7 +917,8 @@ async function sendMatchEmails(pa, pb, meetLink, reason, score){
     const match=shared[0];
     displayA=formatSlotForTZ(match.slotA,tzA);
     displayB=formatSlotForTZ(match.slotB,tzB);
-    sharedLabel=`${DAY_NAMES[match.slotA.split('-')[0]]||match.slotA.split('-')[0]} ${match.slotA.split('-')[1]}`;
+    const[sDay,sHour]=match.slotA.split('-');
+    sharedLabel=`${DAY_NAMES[sDay]||sDay} at ${sHour}`;
   } else {
     const fallback={timeStr:'a convenient time',dateStr:'a mutually available day'};
     displayA=fallback; displayB=fallback; sharedLabel='TBD';
