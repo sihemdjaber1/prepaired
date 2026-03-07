@@ -900,19 +900,73 @@ async function submitProfile(){
   document.getElementById('fc').style.display='none';
   document.getElementById('ssc').style.display='block';
   window.scrollTo({top:0,behavior:'smooth'});
+  // Auto-match: try to find a compatible partner right away
+  autoMatch(profile);
 }
 
-// ── COMPATIBILITY SCORE ──────────────────────────────────
+// ── AUTO MATCH ON SUBMIT ─────────────────────────────────
+async function autoMatch(newProfile){
+  try{
+    const{data:waiting}=await sb.from('profiles').select('*').eq('status','waiting').neq('user_id',newProfile.user_id);
+    if(!waiting||!waiting.length)return;
+    // Find best compatible candidate
+    let best=null,bestScore=-1;
+    for(const candidate of waiting){
+      if(!isCompatible(newProfile,candidate))continue;
+      const score=cmp(newProfile,candidate);
+      if(score>bestScore){bestScore=score;best=candidate;}
+    }
+    if(!best)return; // no compatible partner yet
+    // Create meet link
+    let meetLink='';
+    try{
+      const wr=await fetch('https://reugkvdvfhqpxvbmxlox.supabase.co/functions/v1/swift-processor',{
+        method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+SB_KEY,'apikey':SB_KEY}
+      });
+      const wd=await wr.json();
+      meetLink=wd.roomUrl||'';
+    }catch(e){
+      const alpha='abcdefghijkmnopqrstuvwxyz';
+      const rnd=(n)=>Array.from({length:n},()=>alpha[Math.floor(Math.random()*alpha.length)]).join('');
+      meetLink=`https://whereby.com/prepaired-${rnd(8)}`;
+    }
+    const reason=`Same level, shared language & availability`;
+    await sendMatchEmails(newProfile,best,meetLink,reason,bestScore);
+    await sb.from('profiles').update({status:'matched',matched_with:best.user_id,meet_link:meetLink,matched_at:new Date().toISOString()}).eq('user_id',newProfile.user_id);
+    await sb.from('profiles').update({status:'matched',matched_with:newProfile.user_id,meet_link:meetLink,matched_at:new Date().toISOString()}).eq('user_id',best.user_id);
+    console.log('Auto-matched:',newProfile.name,'↔',best.name,'score:',bestScore);
+  }catch(e){console.error('Auto-match failed:',e);}
+}
+
+// ── COMPATIBILITY CHECK ──────────────────────────────────
+// Hard blocks: all must pass or match is invalid.
+// Score only used to rank among valid candidates.
+function isCompatible(a,b){
+  // 1. Same level exact
+  if(a.level!==b.level)return false;
+  // 2. At least 1 shared language
+  if(!a.langs.filter(l=>b.langs.includes(l)).length)return false;
+  // 3. Same type (handle 'both' as wildcard)
+  const aT=a.types||[],bT=b.types||[];
+  const typeOk=aT.includes('both')||bT.includes('both')||aT.some(t=>bT.includes(t));
+  if(!typeOk)return false;
+  // 4. Same format (only if both doing business case)
+  const needsFormat=(aT.includes('business_case')||aT.includes('both'))&&(bT.includes('business_case')||bT.includes('both'));
+  if(needsFormat){
+    const aF=a.formats||[],bF=b.formats||[];
+    const fmtOk=aF.includes('both_formats')||bF.includes('both_formats')||aF.some(f=>bF.includes(f));
+    if(!fmtOk)return false;
+  }
+  // 5. At least 1 shared timezone slot
+  if(getSharedSlots(a,b).length===0)return false;
+  return true;
+}
 function cmp(a,b){
+  // Only call after isCompatible() — scores tiebreakers only
   let s=0;
-  const lv=['beginner','intermediate','advanced','expert'];
-  const d=Math.abs(lv.indexOf(a.level)-lv.indexOf(b.level));
-  s+=d===0?35:d===1?15:0;
-  s+=a.langs.filter(l=>b.langs.includes(l)).length*15;
-  s+=Math.min(a.firms.filter(f=>b.firms.includes(f)).length*8,20);
-  s+=(a.types.filter(t=>b.types.includes(t)).length||(a.types.includes('both')||b.types.includes('both')?1:0))*10;
-  s+=(a.formats||[]).filter(f=>(b.formats||[]).includes(f)).length*10;
-  s+=Math.min(getSharedSlots(a,b).length*2,10);
+  s+=Math.min(a.firms.filter(f=>b.firms.includes(f)).length*15,45);
+  s+=Math.min(getSharedSlots(a,b).length*5,35);
+  s+=Math.min(a.langs.filter(l=>b.langs.includes(l)).length*10,20);
   return Math.min(s,100);
 }
 
@@ -1017,6 +1071,7 @@ async function runMatch(){
       let bj=-1,bs=-1;
       for(let j=i+1;j<waiting.length;j++){
         if(used.has(waiting[j].user_id))continue;
+        if(!isCompatible(waiting[i],waiting[j]))continue;
         const sc=cmp(waiting[i],waiting[j]);
         if(sc>bs){bs=sc;bj=j;}
       }
@@ -1035,13 +1090,7 @@ async function runMatch(){
     const pb=waiting.find(p=>p.user_id===pair.b);
     if(!pa||!pb)continue;
 
-    // Skip if no shared timezone slots
-    const sharedCheck=getSharedSlots(pa,pb);
-    if(sharedCheck.length===0){
-      console.warn(`No shared slots between ${pa.name} and ${pb.name}, skipping`);
-      // Reset both to waiting so they can be matched later
-      continue;
-    }
+    // isCompatible() already guaranteed shared slots exist
 
     // Create real Whereby room via Supabase Edge Function (bypasses CORS)
     let meetLink='';
