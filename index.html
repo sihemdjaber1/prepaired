@@ -637,7 +637,12 @@ function getSharedSlots(a,b){
       const utcA=getUTCfromLocal(DAY_NUM[sa.split('-')[0]],SLOT_LOCAL_HOUR[sa.split('-')[1]],tzA);
       const utcB=getUTCfromLocal(DAY_NUM[sb.split('-')[0]],SLOT_LOCAL_HOUR[sb.split('-')[1]],tzB);
       if(utcA===utcB||Math.abs(utcA-utcB)<7200000){ // within 120 min (handles DST + half-hour timezones)
-        matched.push({slotA:sa,slotB:sb,utc:utcA});
+        // Verify both local hours are between 8h and 22h
+        const localHourA=SLOT_LOCAL_HOUR[sa.split('-')[1]];
+        const localHourB=SLOT_LOCAL_HOUR[sb.split('-')[1]];
+        if(localHourA>=8&&localHourA<=22&&localHourB>=8&&localHourB<=22){
+          matched.push({slotA:sa,slotB:sb,utc:utcA});
+        }
       }
     }
   }
@@ -931,7 +936,7 @@ async function sendMatchEmails(pa, pb, meetLink, reason, score){
     const dateB=new Date(utcMs).toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'long',timeZone:tzB});
     displayA={timeStr:timeA,dateStr:dateA};
     displayB={timeStr:timeB,dateStr:dateB};
-    sharedLabel=`${dateA} at ${timeA} (your time)`;
+    sharedLabel=null; // personalized per email below
   } else {
     const fallback={timeStr:'a convenient time',dateStr:'a mutually available day'};
     displayA=fallback; displayB=fallback; sharedLabel='TBD';
@@ -946,7 +951,7 @@ async function sendMatchEmails(pa, pb, meetLink, reason, score){
     partner_langs:(pb.langs||[]).join(', '),
     partner_city:pb.city,
     match_reason:reason, match_score:score, meet_link:meetLink,
-    shared_slot:sharedLabel,
+    shared_slot:sharedLabel?`${displayA.dateStr} at ${displayA.timeStr} (your time)`:'TBD',
     suggested_day:displayA.dateStr,
     suggested_time:displayA.timeStr
   };
@@ -959,7 +964,7 @@ async function sendMatchEmails(pa, pb, meetLink, reason, score){
     partner_langs:(pa.langs||[]).join(', '),
     partner_city:pa.city,
     match_reason:reason, match_score:score, meet_link:meetLink,
-    shared_slot:sharedLabel,
+    shared_slot:sharedLabel?`${displayB.dateStr} at ${displayB.timeStr} (your time)`:'TBD',
     suggested_day:displayB.dateStr,
     suggested_time:displayB.timeStr
   };
