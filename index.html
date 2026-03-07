@@ -936,7 +936,7 @@ async function sendMatchEmails(pa, pb, meetLink, reason, score){
     const dateB=new Date(utcMs).toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'long',timeZone:tzB});
     displayA={timeStr:timeA,dateStr:dateA};
     displayB={timeStr:timeB,dateStr:dateB};
-    sharedLabel=null; // personalized per email below
+    sharedLabel=true; // we have shared slots — personalized per email below
   } else {
     const fallback={timeStr:'a convenient time',dateStr:'a mutually available day'};
     displayA=fallback; displayB=fallback; sharedLabel='TBD';
@@ -951,7 +951,7 @@ async function sendMatchEmails(pa, pb, meetLink, reason, score){
     partner_langs:(pb.langs||[]).join(', '),
     partner_city:pb.city,
     match_reason:reason, match_score:score, meet_link:meetLink,
-    shared_slot:sharedLabel?`${displayA.dateStr} at ${displayA.timeStr} (your time)`:'TBD',
+    shared_slot:sharedLabel?`${displayA.dateStr} at ${displayA.timeStr} (your time)`:'TBD — coordinate directly',
     suggested_day:displayA.dateStr,
     suggested_time:displayA.timeStr
   };
@@ -964,7 +964,7 @@ async function sendMatchEmails(pa, pb, meetLink, reason, score){
     partner_langs:(pa.langs||[]).join(', '),
     partner_city:pa.city,
     match_reason:reason, match_score:score, meet_link:meetLink,
-    shared_slot:sharedLabel?`${displayB.dateStr} at ${displayB.timeStr} (your time)`:'TBD',
+    shared_slot:sharedLabel?`${displayB.dateStr} at ${displayB.timeStr} (your time)`:'TBD — coordinate directly',
     suggested_day:displayB.dateStr,
     suggested_time:displayB.timeStr
   };
