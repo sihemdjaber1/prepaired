@@ -555,14 +555,6 @@ tr:hover td{background:rgba(255,31,95,0.03);}
   <div class="tw"><table><thead><tr><th>Name</th><th>Email</th><th>Level</th><th>Firms</th><th>Languages</th><th>City</th><th>Status</th></tr></thead><tbody id="ptb"></tbody></table></div>
   <div style="height:4rem"></div>
 </div>
-
-    <p class="pwd-sub">Not yet open to everyone.<br>Join the waitlist and we'll notify you when we're ready to match you.</p>
-    <input type="password" id="pwd-input" placeholder="Enter access code" style="text-align:center;margin-bottom:0.5rem;" onkeydown="if(event.key==='Enter')checkPwd()">
-    <div class="pwd-err" id="pwd-err">Wrong code. Try again or join the waitlist.</div>
-    <button class="sub" onclick="checkPwd()" style="margin-top:1rem;">Enter →</button>
-    <button class="btn-g" onclick="closePwd();showWaitlist();" style="width:100%;margin-top:0.8rem;text-align:center;">Join the waitlist instead</button>
-  </div>
-</div>
 <script>
 // ── CURSOR ──────────────────────────────────────────────
 const cur=document.getElementById('cursor');
