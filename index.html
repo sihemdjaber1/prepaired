@@ -283,7 +283,7 @@ tr:hover td{background:rgba(255,31,95,0.03);}
   <div class="hero-mesh"></div>
   <div class="hero-inner">
     <div class="h-tag"><span class="h-tag-pulse"></span>AI-Matched · Free · All Top Firms</div>
-    <h1 class="hero-h1">Stop settling.<br>Find your<br><em>perfect</em><br>partner.</h1>
+    <h1 class="hero-h1">Stop settling.<br>Find your<br><em>perfect case</em><br>partner.</h1>
     <p class="hero-body">Prepaired matches you on level, firm, format, language and timezone — not just who replied first.</p>
     <div class="h-actions">
       <button class="btn-p" onclick="handleCTA()">Get matched now →</button>
@@ -295,7 +295,7 @@ tr:hover td{background:rgba(255,31,95,0.03);}
   <div class="hero-grid">
     <div>
       <div class="h-tag" style="margin-bottom:1.2rem;"><span class="h-tag-pulse"></span>Why Prepaired</div>
-      <h2 class="h-hl">The partner you find<br>changes everything.</h2>
+      <h2 class="h-hl">The case partner you find<br>changes everything.</h2>
       <p class="h-body">Get matched on every dimension that actually matters for your offer.</p>
       <div class="h-actions" style="margin-bottom:2rem;">
         <button class="btn-p" onclick="handleCTA()">Get matched now →</button>
@@ -417,7 +417,7 @@ tr:hover td{background:rgba(255,31,95,0.03);}
 <div style="padding:8rem 5%;text-align:center;border-top:1px solid var(--b);" class="rv">
   <div style="max-width:560px;margin:0 auto;">
     <div class="ey" style="justify-content:center;">Ready?</div>
-    <div style="font-family:'Instrument Serif',serif;font-size:clamp(2.2rem,4vw,3.8rem);letter-spacing:-0.03em;line-height:1.1;margin-bottom:1rem;color:var(--ws);">Join the pool.<br>Get your <em style="font-style:italic;color:var(--pink);">match.</em></div>
+    <div style="font-family:'Instrument Serif',serif;font-size:clamp(2.2rem,4vw,3.8rem);letter-spacing:-0.03em;line-height:1.1;margin-bottom:1rem;color:var(--ws);">Join the pool.<br>Get your <em style="font-style:italic;color:var(--pink);">case match.</em></div>
     <p style="font-size:0.92rem;color:var(--g);font-weight:300;margin-bottom:2.5rem;line-height:1.7;">Free. Sign in with Google. We'll email you the moment your match is found.</p>
     <button class="btn-p" style="font-size:1rem;padding:1rem 2.8rem;" onclick="handleCTA()">Get matched now →</button>
   </div>
@@ -432,7 +432,7 @@ tr:hover td{background:rgba(255,31,95,0.03);}
 <!-- ══════════ LOGIN ══════════ -->
 <div id="pv">
   <div class="pv-logo"><div class="logo-dot"></div>Prepaired</div>
-  <p class="pv-sub">Sign in to join the matching pool</p>
+  <p class="pv-sub">Sign in to join the case prep pool</p>
   <button class="google-btn" onclick="signInWithGoogle()">
     <svg viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
     Continue with Google
@@ -522,13 +522,13 @@ tr:hover td{background:rgba(255,31,95,0.03);}
         <div id="avs" style="margin-top:0.5rem;"></div>
       </div>
     </div>
-    <button class="sub" id="submit-btn" onclick="submitProfile()">Find my partner →</button>
+    <button class="sub" id="submit-btn" onclick="submitProfile()">Find my case partner →</button>
     <div style="height:4rem"></div>
   </div>
   <div class="ssc" id="ssc">
     <div class="ssi">✦</div>
     <div class="sst">You're <em>in.</em></div>
-    <p class="sss">Your profile is saved. The moment we find a compatible partner, you'll receive an email with their profile, your shared availability slot, a suggested meeting time, and a Google Meet link.<br><br>Usually within 24 hours.</p>
+    <p class="sss">Your profile is saved. The moment we find a compatible case partner, you'll receive an email with their profile, your shared availability slot, a suggested meeting time, and a Google Meet link.<br><br>Usually within 24 hours.</p>
     <button class="btn-p" onclick="showL()">Back to home</button>
   </div>
 </div>
@@ -881,7 +881,7 @@ async function submitProfile(){
     }
   }catch(e){console.warn('Timezone lookup failed:',e);}
   if(!timezone){
-    btn.disabled=false;btn.textContent='Find my partner →';
+    btn.disabled=false;btn.textContent='Find my case partner →';
     return show('We couldn\'t find your city. Please enter a larger nearby city (e.g. "Paris" instead of a small town).');
   }
 
@@ -894,13 +894,13 @@ async function submitProfile(){
   };
 
   const{error}=await sb.from('profiles').upsert(profile,{onConflict:'user_id'});
-  btn.disabled=false;btn.textContent='Find my partner →';
+  btn.disabled=false;btn.textContent='Find my case partner →';
 
   if(error){show('Error saving profile: '+error.message);return;}
   document.getElementById('fc').style.display='none';
   document.getElementById('ssc').style.display='block';
   window.scrollTo({top:0,behavior:'smooth'});
-  // Auto-match: try to find a compatible partner right away
+  // Auto-match: try to find a compatible case partner right away
   autoMatch(profile);
 }
 
@@ -916,7 +916,7 @@ async function autoMatch(newProfile){
       const score=cmp(newProfile,candidate);
       if(score>bestScore){bestScore=score;best=candidate;}
     }
-    if(!best)return; // no compatible partner yet
+    if(!best)return; // no compatible case partner yet
     // Create meet link
     let meetLink='';
     try{
