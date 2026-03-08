@@ -55,6 +55,8 @@ nav{position:fixed;top:0;left:0;right:0;z-index:500;display:flex;align-items:cen
 .btn-p:hover{transform:translateY(-2px);box-shadow:0 0 45px rgba(255,31,95,0.6);}
 .btn-g{color:var(--g);font-size:0.82rem;font-weight:400;cursor:pointer;background:none;border:1px solid var(--b);border-radius:8px;padding:0.85rem 1.4rem;font-family:'Inter',sans-serif;transition:all 0.2s;}
 .btn-g:hover{color:var(--w);border-color:rgba(255,255,255,0.15);}
+.btn-w{background:#fff;color:#0D0E12;font-size:0.88rem;font-weight:600;padding:0.85rem 2rem;border-radius:8px;cursor:pointer;border:none;font-family:'Inter',sans-serif;transition:all 0.2s;box-shadow:0 0 24px rgba(255,255,255,0.4),0 0 60px rgba(255,255,255,0.15);}
+.btn-w:hover{transform:translateY(-2px);background:rgba(255,255,255,0.95);box-shadow:0 0 40px rgba(255,255,255,0.7),0 0 100px rgba(255,255,255,0.25);}
 .scroll-hint{position:absolute;bottom:2rem;left:0;display:flex;align-items:center;gap:0.6rem;}
 .scroll-line{width:1px;height:40px;background:linear-gradient(to bottom,transparent,var(--g));}
 .scroll-txt{font-size:0.62rem;letter-spacing:0.14em;text-transform:uppercase;color:rgba(200,203,216,0.2);}
@@ -206,6 +208,26 @@ select option{background:#1A1B24;}
 .sst em{font-style:italic;color:var(--pink);}
 .sss{font-size:0.9rem;color:var(--g);font-weight:300;line-height:1.8;max-width:400px;margin:0 auto 2.5rem;}
 
+/* ── WAITLIST MODAL ── */
+.modal-bg{display:none;position:fixed;inset:0;background:rgba(13,14,18,0.92);z-index:800;align-items:center;justify-content:center;}
+.modal-bg.on{display:flex;}
+.modal{background:var(--s1);border:1px solid var(--b);border-radius:16px;padding:2.5rem;width:420px;position:relative;}
+.modal-close{position:absolute;top:1rem;right:1rem;background:none;border:none;color:var(--g);font-size:1.2rem;cursor:pointer;font-family:'Inter',sans-serif;line-height:1;}
+.modal-close:hover{color:var(--w);}
+.modal-title{font-family:'Instrument Serif',serif;font-size:1.8rem;letter-spacing:-0.02em;color:var(--ws);margin-bottom:0.3rem;}
+.modal-title em{font-style:italic;color:var(--pink);}
+.modal-sub{font-size:0.8rem;color:var(--g);font-weight:300;margin-bottom:1.8rem;line-height:1.6;}
+.modal-field{margin-bottom:1rem;}
+.modal-field label{display:block;font-size:0.6rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:rgba(200,203,216,0.35);margin-bottom:0.4rem;}
+.modal-success{display:none;text-align:center;padding:1rem 0;}
+.modal-success-icon{font-size:2rem;margin-bottom:0.8rem;}
+.modal-success-title{font-family:'Instrument Serif',serif;font-size:1.5rem;color:var(--ws);margin-bottom:0.5rem;}
+.modal-success-sub{font-size:0.8rem;color:var(--g);font-weight:300;line-height:1.6;}
+/* Password modal */
+.pwd-modal{background:var(--s1);border:1px solid var(--b);border-radius:16px;padding:2.5rem;width:400px;position:relative;text-align:center;}
+.pwd-title{font-family:'Instrument Serif',serif;font-size:1.6rem;color:var(--ws);margin-bottom:0.5rem;}
+.pwd-sub{font-size:0.82rem;color:var(--g);font-weight:300;margin-bottom:1.5rem;line-height:1.65;}
+.pwd-err{font-size:0.75rem;color:#FCA5A5;margin-top:0.6rem;display:none;}
 /* ── ADMIN ── */
 #av{padding:8rem 5% 4rem;max-width:1200px;margin:0 auto;}
 .at{font-family:'Instrument Serif',serif;font-size:2.4rem;margin-bottom:0.4rem;color:var(--ws);}
@@ -287,7 +309,7 @@ tr:hover td{background:rgba(255,31,95,0.03);}
     <p class="hero-body">Prepaired matches you on level, firm, format, language and timezone — not just who replied first.</p>
     <div class="h-actions">
       <button class="btn-p" onclick="handleCTA()">Get matched now →</button>
-      <button class="btn-g" onclick="document.getElementById('how').scrollIntoView({behavior:'smooth'})">How it works ↓</button>
+      <button class="btn-w" onclick="showWaitlist()">Join the waitlist</button>
     </div>
     <div class="scroll-hint"><div class="scroll-line"></div><span class="scroll-txt">Scroll to explore</span></div>
   </div>
@@ -299,6 +321,7 @@ tr:hover td{background:rgba(255,31,95,0.03);}
       <p class="h-body">Get matched on every dimension that actually matters for your offer.</p>
       <div class="h-actions" style="margin-bottom:2rem;">
         <button class="btn-p" onclick="handleCTA()">Get matched now →</button>
+        <button class="btn-w" onclick="showWaitlist()">Join the waitlist</button>
       </div>
       <div class="stat-row">
         <div class="sr-item"><div class="sr-val">20+</div><div class="sr-lbl">Firms</div></div>
@@ -419,7 +442,10 @@ tr:hover td{background:rgba(255,31,95,0.03);}
     <div class="ey" style="justify-content:center;">Ready?</div>
     <div style="font-family:'Instrument Serif',serif;font-size:clamp(2.2rem,4vw,3.8rem);letter-spacing:-0.03em;line-height:1.1;margin-bottom:1rem;color:var(--ws);">Join the pool.<br>Get your <em style="font-style:italic;color:var(--pink);">case match.</em></div>
     <p style="font-size:0.92rem;color:var(--g);font-weight:300;margin-bottom:2.5rem;line-height:1.7;">Free. Sign in with Google. We'll email you the moment your match is found.</p>
+    <div style="display:flex;gap:1rem;justify-content:center;align-items:center;flex-wrap:wrap;">
     <button class="btn-p" style="font-size:1rem;padding:1rem 2.8rem;" onclick="handleCTA()">Get matched now →</button>
+    <button class="btn-w" style="font-size:0.9rem;" onclick="showWaitlist()">Join the waitlist</button>
+    </div>
   </div>
 </div>
 
@@ -554,6 +580,37 @@ tr:hover td{background:rgba(255,31,95,0.03);}
   <div style="height:4rem"></div>
 </div>
 
+<!-- ══════════ WAITLIST MODAL ══════════ -->
+<div class="modal-bg" id="waitlist-modal" onclick="if(event.target===this)closeWaitlist()">
+  <div class="modal">
+    <button class="modal-close" onclick="closeWaitlist()">✕</button>
+    <div id="waitlist-form-wrap">
+      <div class="modal-title">Join the <em>waitlist.</em></div>
+      <p class="modal-sub">We'll notify you the moment we're ready to match you with your perfect case partner.</p>
+      <div class="modal-field"><label>First name <sup style="color:var(--pink)">*</sup></label><input type="text" id="wl-name" placeholder="Your first name"></div>
+      <div class="modal-field"><label>Email <sup style="color:var(--pink)">*</sup></label><input type="email" id="wl-email" placeholder="your@email.com"></div>
+      <div id="wl-err" class="err" style="margin-top:0.8rem;"></div>
+      <button class="sub" id="wl-btn" onclick="submitWaitlist()" style="margin-top:1rem;">Notify me →</button>
+    </div>
+    <div class="modal-success" id="waitlist-success">
+      <div class="modal-success-icon">✦</div>
+      <div class="modal-success-title">You're on the list.</div>
+      <p class="modal-success-sub">We'll email you as soon as we're ready to match you.<br>Stay close.</p>
+    </div>
+  </div>
+</div>
+<!-- ══════════ PASSWORD MODAL ══════════ -->
+<div class="modal-bg" id="pwd-modal" onclick="if(event.target===this)closePwd()">
+  <div class="pwd-modal">
+    <button class="modal-close" onclick="closePwd()">✕</button>
+    <div class="pwd-title">Beta access</div>
+    <p class="pwd-sub">Not yet open to everyone.<br>Join the waitlist and we'll notify you when we're ready to match you.</p>
+    <input type="password" id="pwd-input" placeholder="Enter access code" style="text-align:center;margin-bottom:0.5rem;" onkeydown="if(event.key==='Enter')checkPwd()">
+    <div class="pwd-err" id="pwd-err">Wrong code. Try again or join the waitlist.</div>
+    <button class="sub" onclick="checkPwd()" style="margin-top:1rem;">Enter →</button>
+    <button class="btn-g" onclick="closePwd();showWaitlist();" style="width:100%;margin-top:0.8rem;text-align:center;">Join the waitlist instead</button>
+  </div>
+</div>
 <script>
 // ── CURSOR ──────────────────────────────────────────────
 const cur=document.getElementById('cursor');
@@ -712,8 +769,47 @@ async function signOut(){
 }
 
 function handleCTA(){
-  if(currentUser){showSignup();}
-  else{showLogin();}
+  document.getElementById('pwd-modal').classList.add('on');
+}
+function closePwd(){
+  document.getElementById('pwd-modal').classList.remove('on');
+  document.getElementById('pwd-input').value='';
+  document.getElementById('pwd-err').style.display='none';
+}
+function checkPwd(){
+  const val=document.getElementById('pwd-input').value.trim();
+  if(val==='adminsihem'){
+    closePwd();
+    if(currentUser){showSignup();}
+    else{showLogin();}
+  } else {
+    document.getElementById('pwd-err').style.display='block';
+  }
+}
+function showWaitlist(){
+  document.getElementById('waitlist-modal').classList.add('on');
+  document.getElementById('waitlist-form-wrap').style.display='block';
+  document.getElementById('waitlist-success').style.display='none';
+  document.getElementById('wl-name').value='';
+  document.getElementById('wl-email').value='';
+}
+function closeWaitlist(){
+  document.getElementById('waitlist-modal').classList.remove('on');
+}
+async function submitWaitlist(){
+  const name=document.getElementById('wl-name').value.trim();
+  const email=document.getElementById('wl-email').value.trim();
+  const err=document.getElementById('wl-err');
+  err.style.display='none';
+  if(!name||!email){err.textContent='Please fill in both fields.';err.style.display='block';return;}
+  if(!email.includes('@')){err.textContent='Please enter a valid email.';err.style.display='block';return;}
+  const btn=document.getElementById('wl-btn');
+  btn.disabled=true;btn.textContent='Saving…';
+  const{error}=await sb.from('waitlist').upsert({email,name,created_at:new Date().toISOString()},{onConflict:'email'});
+  btn.disabled=false;btn.textContent='Notify me →';
+  if(error){err.textContent='Error: '+error.message;err.style.display='block';return;}
+  document.getElementById('waitlist-form-wrap').style.display='none';
+  document.getElementById('waitlist-success').style.display='block';
 }
 
 // ── VIEWS ────────────────────────────────────────────────
