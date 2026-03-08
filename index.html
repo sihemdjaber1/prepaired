@@ -36,6 +36,8 @@ nav{position:fixed;top:0;left:0;right:0;z-index:500;display:flex;align-items:cen
 .nav-signout:hover{color:var(--pink2);border-color:rgba(255,31,95,0.3);}
 .nav-btn{background:var(--pink);color:#fff;font-size:0.8rem;font-weight:600;padding:0.55rem 1.4rem;border-radius:6px;cursor:pointer;border:none;font-family:'Inter',sans-serif;transition:all 0.2s;box-shadow:0 0 20px rgba(255,31,95,0.35);}
 .nav-btn:hover{transform:translateY(-1px);box-shadow:0 0 35px rgba(255,31,95,0.6);}
+.nav-btn-w{background:#fff;color:#0D0E12;font-size:0.8rem;font-weight:600;padding:0.55rem 1.4rem;border-radius:6px;cursor:pointer;border:none;font-family:'Inter',sans-serif;transition:all 0.2s;box-shadow:0 0 16px rgba(255,255,255,0.35);}
+.nav-btn-w:hover{transform:translateY(-1px);box-shadow:0 0 30px rgba(255,255,255,0.6);}
 
 /* VIEWS */
 #lv,#sv,#av,#pv{position:relative;z-index:1;}
@@ -296,6 +298,7 @@ tr:hover td{background:rgba(255,31,95,0.03);}
       <button class="nav-signout" onclick="signOut()">Sign out</button>
     </div>
     <button class="nav-btn" id="nav-cta" onclick="handleCTA()">Get matched →</button>
+    <button class="nav-btn-w" onclick="showWaitlist()">Join the waitlist</button>
   </div>
 </nav>
 
