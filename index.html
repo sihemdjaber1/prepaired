@@ -311,7 +311,7 @@ tr:hover td{background:rgba(255,31,95,0.03);}
 <div class="hero">
   <div class="hero-mesh"></div>
   <div class="hero-inner">
-    <div class="h-tag"><span class="h-tag-pulse"></span>Matched on level, firms, language &amp; timezone · Consulting &amp; IB · Free</div>
+    <div class="h-tag" style="max-width:700px;border-radius:10px;text-transform:none;letter-spacing:0.02em;font-size:0.78rem;font-weight:500;"><span class="h-tag-pulse"></span>We find and organize you a free video call with a training partner who preps for the same firms, the same way, at the same level as you — no matter where you are.</div>
     <h1 class="hero-h1">Stop settling.<br>Find your<br><em>perfect training</em><br>partner.</h1>
     <p class="hero-body">Prepaired matches you on level, target firms, format, language and timezone — for consulting cases and IB interviews.</p>
     <div class="h-actions">
@@ -412,7 +412,8 @@ tr:hover td{background:rgba(255,31,95,0.03);}
 <div class="firms-section rv" id="firms">
   <div class="firms-inner">
     <div class="ey">Supported firms</div>
-    <div class="sec-title">Every firm.<br>Every format.</div>
+    <div class="sec-title">Consulting &amp; IB.<br>Every firm.</div>
+    <div class="ey" style="margin-bottom:1rem;">Consulting</div>
     <div class="firms-wall">
       <div class="fw-cell mbb"><div class="fw-name">McKinsey & Co</div><div class="fw-fmt">Interviewer-led</div></div>
       <div class="fw-cell mbb"><div class="fw-name">BCG</div><div class="fw-fmt">Interviewee-led</div></div>
@@ -434,6 +435,29 @@ tr:hover td{background:rgba(255,31,95,0.03);}
       <div class="fw-cell"><div class="fw-name">CVA</div><div class="fw-fmt">Interviewee-led</div></div>
       <div class="fw-cell"><div class="fw-name">Estin & Co</div><div class="fw-fmt">Interviewee-led</div></div>
       <div class="fw-cell"><div class="fw-name">Other</div><div class="fw-fmt">Varies</div></div>
+    </div>
+    <div style="margin-top:2rem;">
+      <div class="ey" style="margin-bottom:1rem;">Investment Banking</div>
+      <div class="firms-wall">
+        <div class="fw-cell mbb"><div class="fw-name">Goldman Sachs</div><div class="fw-fmt">M&amp;A · ECM · DCM</div></div>
+        <div class="fw-cell mbb"><div class="fw-name">Morgan Stanley</div><div class="fw-fmt">M&amp;A · ECM · DCM</div></div>
+        <div class="fw-cell mbb"><div class="fw-name">JP Morgan</div><div class="fw-fmt">M&amp;A · ECM · DCM</div></div>
+        <div class="fw-cell"><div class="fw-name">BNP Paribas</div><div class="fw-fmt">CIB</div></div>
+        <div class="fw-cell"><div class="fw-name">Société Générale</div><div class="fw-fmt">CIB</div></div>
+        <div class="fw-cell"><div class="fw-name">Crédit Agricole CIB</div><div class="fw-fmt">CIB</div></div>
+        <div class="fw-cell"><div class="fw-name">Natixis</div><div class="fw-fmt">CIB</div></div>
+        <div class="fw-cell"><div class="fw-name">Barclays</div><div class="fw-fmt">M&amp;A · Markets</div></div>
+        <div class="fw-cell"><div class="fw-name">UBS</div><div class="fw-fmt">M&amp;A · Markets</div></div>
+        <div class="fw-cell"><div class="fw-name">Deutsche Bank</div><div class="fw-fmt">M&amp;A · Markets</div></div>
+        <div class="fw-cell mbb"><div class="fw-name">Lazard</div><div class="fw-fmt">M&amp;A Boutique</div></div>
+        <div class="fw-cell mbb"><div class="fw-name">Rothschild &amp; Co</div><div class="fw-fmt">M&amp;A Boutique</div></div>
+        <div class="fw-cell mbb"><div class="fw-name">Evercore</div><div class="fw-fmt">M&amp;A Boutique</div></div>
+        <div class="fw-cell"><div class="fw-name">Centerview</div><div class="fw-fmt">M&amp;A Boutique</div></div>
+        <div class="fw-cell"><div class="fw-name">Perella Weinberg</div><div class="fw-fmt">M&amp;A Boutique</div></div>
+        <div class="fw-cell"><div class="fw-name">Houlihan Lokey</div><div class="fw-fmt">M&amp;A · Restructuring</div></div>
+        <div class="fw-cell"><div class="fw-name">Jefferies</div><div class="fw-fmt">M&amp;A · ECM</div></div>
+        <div class="fw-cell"><div class="fw-name">Other</div><div class="fw-fmt">Varies</div></div>
+      </div>
     </div>
   </div>
 </div>
@@ -1426,7 +1450,7 @@ function setLoader(on,txt='',sub=''){
 }
 
 // ── TICKER ───────────────────────────────────────────────
-const fl=['McKinsey & Co','BCG','Bain & Company','Oliver Wyman','Roland Berger','AT Kearney','Monitor Deloitte','Kéa Partners','OC&C','Advancy','L.E.K.','Simon-Kucher','Exton','CH&Co','Eleven Strategy','Ares & Co','Vertone','CVA','Estin & Co'];
+const fl=['McKinsey & Co','BCG','Bain & Company','Oliver Wyman','Roland Berger','AT Kearney','Monitor Deloitte','Lazard','Rothschild & Co','Goldman Sachs','Morgan Stanley','JP Morgan','Evercore','Centerview','Kéa Partners','OC&C','Advancy','L.E.K.','Simon-Kucher','Exton','BNP Paribas','Société Générale','Jefferies','Houlihan Lokey'];
 const tk=document.getElementById('tk');
 [...fl,...fl].forEach(f=>{const d=document.createElement('div');d.className='t-item';d.textContent=f;tk.appendChild(d);});
 
