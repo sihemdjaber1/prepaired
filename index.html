@@ -311,9 +311,9 @@ tr:hover td{background:rgba(255,31,95,0.03);}
 <div class="hero">
   <div class="hero-mesh"></div>
   <div class="hero-inner">
-    <div class="h-tag"><span class="h-tag-pulse"></span>AI-Matched · Free · Consulting &amp; IB</div>
+    <div class="h-tag" style="max-width:600px;border-radius:10px;padding:0.6rem 1.1rem;"><span class="h-tag-pulse"></span>On te trouve un partenaire pour t’entraîner &mdash; consulting &amp; IB &mdash; matché selon ton niveau, tes cibles, ta langue et tes dispos. La visio est déjà organisée.</div>
     <h1 class="hero-h1">Stop settling.<br>Find your<br><em>perfect training</em><br>partner.</h1>
-    <p class="hero-body">Prepaired matches you on level, firm, format, language and timezone — not just who replied first.</p>
+    <p class="hero-body">Prepaired matches you on level, target firms, format, language and timezone — for consulting cases and IB interviews.</p>
     <div class="h-actions">
       <button class="btn-p" onclick="handleCTA()">Get matched now →</button>
     </div>
@@ -402,7 +402,7 @@ tr:hover td{background:rgba(255,31,95,0.03);}
     <div class="process-title">Three steps.<br>One great partner.</div>
     <div class="process-grid">
       <div class="proc-card"><div class="proc-num">01</div><div class="proc-title">Sign in with Google</div><div class="proc-desc">One click. Your name and email are pre-filled. Just add your level, firms, format, language, and availability.</div></div>
-      <div class="proc-card"><div class="proc-num">02</div><div class="proc-title">AI finds your match</div><div class="proc-desc">We score compatibility across every dimension and pair you with the highest-fit person in the pool. Usually within 24 hours.</div></div>
+      <div class="proc-card"><div class="proc-num">02</div><div class="proc-title">AI finds your match</div><div class="proc-desc">We score compatibility across level, firms, format, language and timezone — for both consulting and IB. Usually within 24 hours.</div></div>
       <div class="proc-card"><div class="proc-num">03</div><div class="proc-title">Both get an email</div><div class="proc-desc">Each other's profile, your shared availability slot, a suggested meeting time, and one Google Meet link for both of you.</div></div>
     </div>
   </div>
@@ -623,6 +623,18 @@ tr:hover td{background:rgba(255,31,95,0.03);}
             <button class="pp" data-v="houlihan" onclick="tp(this)">Houlihan Lokey</button>
             <button class="pp" data-v="jefferies" onclick="tp(this)">Jefferies</button>
             <button class="pp" data-v="other_bank" onclick="tp(this)">Other</button>
+          </div>
+        </div>
+      </div>
+      <div class="fb"><span class="fbl">05b — Language(s)</span>
+        <div class="ff"><label class="fl">Language(s) <sup>*</sup></label>
+          <div class="pg" id="cl-ib">
+            <button class="pp" data-v="english" onclick="tp(this)">English</button>
+            <button class="pp" data-v="french" onclick="tp(this)">Français</button>
+            <button class="pp" data-v="german" onclick="tp(this)">Deutsch</button>
+            <button class="pp" data-v="spanish" onclick="tp(this)">Español</button>
+            <button class="pp" data-v="mandarin" onclick="tp(this)">&#20013;&#25991;</button>
+            <button class="pp" data-v="other" onclick="tp(this)">Other</button>
           </div>
         </div>
       </div>
@@ -1043,7 +1055,7 @@ async function submitProfile(){
 
   if(isBank){
     level=document.getElementById('fblv').value;
-    types=ga('bct');formats=[];langs=ga('cl');firms=ga('cbk');avail=getAv();
+    types=ga('bct');formats=[];langs=ga('cl-ib');firms=ga('cbk');avail=getAv();
     if(!level)return show('Please select your experience level.');
     if(!types.length)return show('Please select what you want to practice.');
     if(!langs.length)return show('Please select at least one language.');
