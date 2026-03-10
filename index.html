@@ -693,7 +693,7 @@ tr:hover td{background:rgba(255,31,95,0.03);}
     <div class="asc"><div class="asl">Languages</div><div class="asv" id="sl">—</div></div>
   </div>
   <div class="aa">
-    <button class="ab2" onclick="runMatch()">✦ Run AI Matching</button>
+    <button class="ab2" onclick="runMatch()">✦ Run Matching</button>
     <button class="ab2 o" onclick="loadAdmin()">↺ Refresh</button>
     <button class="ab2 o" onclick="clrAll()">Clear all</button>
   </div>
@@ -1328,29 +1328,29 @@ async function runMatch(){
     return;
   }
 
-  const sm=waiting.map(p=>({id:p.user_id,name:p.name,level:p.level,langs:p.langs,firms:p.firms.slice(0,4),types:p.types,formats:p.formats||[],avail:p.avail.slice(0,8),city:p.city,timezone:p.timezone||'Europe/Paris',email:p.email}));
+  const sm=waiting.map(p=>({id:p.user_id,name:p.name,level:p.level,langs:p.langs,firms:p.firms.slice(0,4),types:p.types,formats:p.formats||[],avail:p.avail.slice(0,8),city:p.city,timezone:p.timezone||'Europe/Paris',email:p.email,track:p.track||'consulting'}));
   let pairs=[];
 
-  try{
-    const r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1000,system:'Matching algorithm for consulting interview prep. Find optimal pairs prioritising: same level, shared languages, same case format (interviewer-led vs interviewee-led), overlapping firms, availability overlap. Return ONLY valid JSON array: [{"a":"user_id_1","b":"user_id_2","reason":"one sentence","score":0-100}]. No person used twice.',messages:[{role:'user',content:'Match these profiles: '+JSON.stringify(sm)}]})});
-    const data=await r.json();
-    const txt=data.content.filter(c=>c.type==='text').map(c=>c.text).join('');
-    pairs=JSON.parse(txt.replace(/```json|```/g,'').trim());
-  } catch(e){
-    // Fallback: greedy matching
-    const used=new Set();
-    for(let i=0;i<waiting.length;i++){
-      if(used.has(waiting[i].user_id))continue;
+  // Greedy compatibility matching — group by track first
+  const used=new Set();
+  const tracks=[...new Set(waiting.map(p=>p.track||'consulting'))];
+  for(const track of tracks){
+    const pool=waiting.filter(p=>(p.track||'consulting')===track);
+    for(let i=0;i<pool.length;i++){
+      if(used.has(pool[i].user_id))continue;
       let bj=-1,bs=-1;
-      for(let j=i+1;j<waiting.length;j++){
-        if(used.has(waiting[j].user_id))continue;
-        if(!isCompatible(waiting[i],waiting[j]))continue;
-        const sc=cmp(waiting[i],waiting[j]);
+      for(let j=i+1;j<pool.length;j++){
+        if(used.has(pool[j].user_id))continue;
+        if(!isCompatible(pool[i],pool[j]))continue;
+        const sc=cmp(pool[i],pool[j]);
         if(sc>bs){bs=sc;bj=j;}
       }
       if(bj>=0){
-        pairs.push({a:waiting[i].user_id,b:waiting[bj].user_id,score:bs,reason:'Matched by compatibility score'});
-        used.add(waiting[i].user_id);used.add(waiting[bj].user_id);
+        const sharedLangs=(pool[i].langs||[]).filter(l=>(pool[bj].langs||[]).includes(l));
+        const sharedFirms=(pool[i].firms||[]).filter(f=>(pool[bj].firms||[]).includes(f));
+        const reason=`Same level · ${sharedLangs.join(', ')||'compatible languages'} · ${sharedFirms.slice(0,2).join(', ')||'compatible targets'}`;
+        pairs.push({a:pool[i].user_id,b:pool[bj].user_id,score:bs,reason});
+        used.add(pool[i].user_id);used.add(pool[bj].user_id);
       }
     }
   }
