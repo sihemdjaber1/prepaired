@@ -302,7 +302,7 @@ tr:hover td{background:rgba(255,31,95,0.03);}
       <span class="nav-uname" id="nav-uname"></span>
       <button class="nav-signout" onclick="signOut()">Sign out</button>
     </div>
-    <button class="nav-btn" id="nav-cta" onclick="handleCTA()">Get matched →</button>
+    
   </div>
 </nav>
 
@@ -310,103 +310,20 @@ tr:hover td{background:rgba(255,31,95,0.03);}
 <div id="lv">
 <div class="hero">
   <div class="hero-mesh"></div>
-  <div class="hero-inner">
-    <div class="h-tag" style="max-width:700px;border-radius:10px;text-transform:none;letter-spacing:0.02em;font-size:0.78rem;font-weight:500;"><span class="h-tag-pulse"></span>We find and organize you a free video call with a training partner who preps for the same firms, the same way, at the same level as you — no matter where you are.</div>
-    <h1 class="hero-h1">Stop settling.<br>Find your<br><em>perfect training</em><br>partner.</h1>
-    <p class="hero-body">Prepaired matches you on level, target firms, format, language and timezone — for consulting cases and IB interviews.</p>
-    <div class="h-actions">
-      <button class="btn-p" onclick="handleCTA()">Get matched now →</button>
+  <div class="hero-inner" style="align-items:center;text-align:center;justify-content:center;min-height:100vh;">
+    <div class="h-tag" style="border-radius:100px;margin-bottom:2rem;font-size:0.72rem;letter-spacing:0.1em;"><span class="h-tag-pulse"></span>Consulting &amp; IB</div>
+    <p style="font-size:clamp(0.85rem,1.5vw,1rem);font-weight:600;letter-spacing:0.18em;text-transform:uppercase;color:var(--g);margin-bottom:1.2rem;">Prepare your next consulting &amp; investment banking interviews</p>
+    <h1 class="hero-h1" style="text-align:center;margin-bottom:1.8rem;font-size:clamp(3rem,7vw,7.5rem);">Stop settling.<br>Your next mock<br>interview partner<br>is <em>waiting.</em></h1>
+    <p style="font-size:1rem;color:var(--g);font-weight:300;line-height:2;margin-bottom:2.5rem;">We match you on <strong style="color:var(--ws);font-weight:500;">same level · same firms · same language · same availability.</strong><br>Video call included. You just show up.</p>
+    <div class="h-actions" style="justify-content:center;">
+      <button class="btn-p" style="font-size:1.1rem;padding:1.1rem 3rem;" onclick="handleCTA()">Sign up &amp; get matched →</button>
     </div>
-    <div class="scroll-hint"><div class="scroll-line"></div><span class="scroll-txt">Scroll to explore</span></div>
+    
   </div>
 
-  <div class="hero-grid">
-    <div>
-      <div class="h-tag" style="margin-bottom:1.2rem;"><span class="h-tag-pulse"></span>Why Prepaired</div>
-      <h2 class="h-hl">The training partner you find<br>changes everything.</h2>
-      <p class="h-body">Get matched on every dimension that actually matters for your offer.</p>
-      <div class="h-actions" style="margin-bottom:2rem;">
-        <button class="btn-p" onclick="handleCTA()">Get matched now →</button>
-      </div>
-      <div class="stat-row">
-        <div class="sr-item"><div class="sr-val">20+</div><div class="sr-lbl">Firms</div></div>
-        <div class="sr-item"><div class="sr-val">6</div><div class="sr-lbl">Languages</div></div>
-        <div class="sr-item"><div class="sr-val">4</div><div class="sr-lbl">Levels</div></div>
-        <div class="sr-item"><div class="sr-val" style="font-size:1.1rem;padding-top:0.2rem">Free</div><div class="sr-lbl">Always</div></div>
-      </div>
-    </div>
-    <div class="match-demo">
-      <div class="md-card">
-        <div style="font-size:0.6rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:var(--g);margin-bottom:1.2rem;display:flex;justify-content:space-between;">
-          <span>Compatibility breakdown</span><span style="color:var(--pink2)">Sample match</span>
-        </div>
-        <div class="fv-row"><span class="fv-label">Level</span><div class="fv-bar-wrap"><div class="fv-bar" style="width:100%"></div></div><span class="fv-pct">100%</span></div>
-        <div class="fv-row"><span class="fv-label">Format</span><div class="fv-bar-wrap"><div class="fv-bar" style="width:100%"></div></div><span class="fv-pct">100%</span></div>
-        <div class="fv-row"><span class="fv-label">Language</span><div class="fv-bar-wrap"><div class="fv-bar" style="width:88%"></div></div><span class="fv-pct">88%</span></div>
-        <div class="fv-row"><span class="fv-label">Firms</span><div class="fv-bar-wrap"><div class="fv-bar" style="width:75%"></div></div><span class="fv-pct">75%</span></div>
-        <div class="fv-row"><span class="fv-label">Timezone</span><div class="fv-bar-wrap"><div class="fv-bar" style="width:94%"></div></div><span class="fv-pct">94%</span></div>
-      </div>
-      <div class="md-connector"><div class="md-line"></div><div class="md-badge">96% MATCH</div><div class="md-line"></div></div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.6rem;">
-        <div class="md-card" style="margin-bottom:0;">
-          <div style="font-size:0.6rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--g);margin-bottom:0.8rem;">Profile A</div>
-          <div class="md-pills"><span class="md-pill">Intermediate</span><span class="md-pill">McKinsey</span><span class="md-pill w">Interviewer-led</span><span class="md-pill w">French</span></div>
-        </div>
-        <div class="md-card" style="margin-bottom:0;">
-          <div style="font-size:0.6rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--g);margin-bottom:0.8rem;">Profile B</div>
-          <div class="md-pills"><span class="md-pill">Intermediate</span><span class="md-pill">McKinsey</span><span class="md-pill w">Interviewer-led</span><span class="md-pill w">English</span></div>
-        </div>
-      </div>
-      <div class="md-notif">
-        <div style="font-family:'Instrument Serif',serif;color:var(--pink);font-size:0.9rem;margin-right:0.2rem;">M</div>
-        <div><div class="md-notif-title">Match delivered</div><div class="md-notif-sub">Both received profile + Google Meet link</div></div>
-      </div>
-    </div>
-  </div>
 </div>
 
 <div class="ticker"><div class="t-track" id="tk"></div></div>
-
-<!-- BENTO -->
-<div class="bento-section rv" id="how">
-  <div style="max-width:1300px;margin:0 auto;">
-    <div class="ey">Why Prepaired</div>
-    <div class="sec-title">Everything your prep<br>was missing.</div>
-  </div>
-  <div class="bento-grid">
-    <div class="bento b1">
-      <div class="b-tag">Core feature</div>
-      <div class="b-num">96%</div>
-      <div class="b-title">Compatibility scoring</div>
-      <div class="b-desc">Every match scored across 5 dimensions. You see exactly why you were paired.</div>
-      <div style="margin-top:1.4rem;">
-        <div class="fv-row"><span class="fv-label">Level</span><div class="fv-bar-wrap"><div class="fv-bar" style="width:100%"></div></div><span class="fv-pct">100%</span></div>
-        <div class="fv-row"><span class="fv-label">Format</span><div class="fv-bar-wrap"><div class="fv-bar" style="width:90%"></div></div><span class="fv-pct">90%</span></div>
-        <div class="fv-row"><span class="fv-label">Language</span><div class="fv-bar-wrap"><div class="fv-bar" style="width:85%"></div></div><span class="fv-pct">85%</span></div>
-        <div class="fv-row"><span class="fv-label">Firms</span><div class="fv-bar-wrap"><div class="fv-bar" style="width:80%"></div></div><span class="fv-pct">80%</span></div>
-        <div class="fv-row"><span class="fv-label">Timezone</span><div class="fv-bar-wrap"><div class="fv-bar" style="width:95%"></div></div><span class="fv-pct">95%</span></div>
-      </div>
-    </div>
-    <div class="bento b2"><div class="b-icon">01</div><div class="b-title">Exact level matching</div><div class="b-desc">0 internships or 60 cases done — practice with someone at your exact stage.</div></div>
-    <div class="bento b3"><div class="b-icon">02</div><div class="b-title">Format-aware</div><div class="b-desc">McKinsey interviewer-led. BCG interviewee-led. IB technicals or fit. We match the format.</div></div>
-    <div class="bento b4"><div class="b-icon">03</div><div class="b-title">Language-aware</div><div class="b-desc">Prep in French, German, Mandarin or Spanish. We match you with someone who speaks your language.</div></div>
-    <div class="bento b5"><div class="b-icon">04</div><div class="b-title">Zero friction</div><div class="b-desc">Match found → both get an email with each other's profile + a Google Meet link. No app, no DMs.</div></div>
-    <div class="bento b6"><div class="b-icon">05</div><div class="b-title">Availability matching</div><div class="b-desc">You mark your slots. We only pair people who can actually meet — and suggest an exact time in the email based on your overlap.</div></div>
-  </div>
-</div>
-
-<!-- PROCESS -->
-<div class="process-section rv">
-  <div class="process-inner">
-    <div class="process-eyebrow">How it works</div>
-    <div class="process-title">Three steps.<br>One great training partner.</div>
-    <div class="process-grid">
-      <div class="proc-card"><div class="proc-num">01</div><div class="proc-title">Sign in with Google</div><div class="proc-desc">One click. Choose your track — consulting or IB — then fill in your level, targets, language and availability.</div></div>
-      <div class="proc-card"><div class="proc-num">02</div><div class="proc-title">AI finds your match</div><div class="proc-desc">We score compatibility across level, firms, format, language and timezone — for both consulting and IB. Usually within 24 hours.</div></div>
-      <div class="proc-card"><div class="proc-num">03</div><div class="proc-title">Both get an email</div><div class="proc-desc">Your partner's profile, a suggested meeting time based on your shared availability, and a Google Meet link. Nothing to set up.</div></div>
-    </div>
-  </div>
-</div>
 
 <!-- FIRMS -->
 <div class="firms-section rv" id="firms">
@@ -462,8 +379,54 @@ tr:hover td{background:rgba(255,31,95,0.03);}
   </div>
 </div>
 
+
+<!-- PROCESS -->
+<div class="process-section rv">
+  <div class="process-inner">
+    <div class="process-eyebrow">How it works</div>
+    <div class="process-title" style="font-size:clamp(3rem,6vw,6rem);">How it works.</div>
+    
+    <div class="process-grid">
+      <div class="proc-card"><div class="proc-num">01</div><div class="proc-title">Sign in with Google</div><div class="proc-desc">One click. Choose your track — consulting or IB — then fill in your level, targets, language and availability.</div></div>
+      <div class="proc-card"><div class="proc-num">02</div><div class="proc-title">AI finds your match</div><div class="proc-desc">We score compatibility across level, firms, format, language and timezone — for both consulting and IB. Usually within 24 hours.</div></div>
+      <div class="proc-card"><div class="proc-num">03</div><div class="proc-title">Both get an email</div><div class="proc-desc">Your partner's profile, a suggested meeting time based on your shared availability, and a Google Meet link. Nothing to set up.</div></div>
+    </div>
+  </div>
+</div>
+
+
 <!-- QUOTES -->
 <div class="q-section rv"><div class="q-track" id="qt"></div></div>
+
+
+<!-- BENTO -->
+<div class="bento-section rv" id="how">
+  <div style="max-width:1300px;margin:0 auto;">
+    <div class="ey">Why Prepaired</div>
+    <div class="sec-title">Everything your prep<br>was missing.</div>
+  </div>
+  <div class="bento-grid">
+    <div class="bento b1">
+      <div class="b-tag">Core feature</div>
+      <div class="b-num">96%</div>
+      <div class="b-title">Compatibility scoring</div>
+      <div class="b-desc">Every match scored across 5 dimensions. You see exactly why you were paired.</div>
+      <div style="margin-top:1.4rem;">
+        <div class="fv-row"><span class="fv-label">Level</span><div class="fv-bar-wrap"><div class="fv-bar" style="width:100%"></div></div><span class="fv-pct">100%</span></div>
+        <div class="fv-row"><span class="fv-label">Format</span><div class="fv-bar-wrap"><div class="fv-bar" style="width:90%"></div></div><span class="fv-pct">90%</span></div>
+        <div class="fv-row"><span class="fv-label">Language</span><div class="fv-bar-wrap"><div class="fv-bar" style="width:85%"></div></div><span class="fv-pct">85%</span></div>
+        <div class="fv-row"><span class="fv-label">Firms</span><div class="fv-bar-wrap"><div class="fv-bar" style="width:80%"></div></div><span class="fv-pct">80%</span></div>
+        <div class="fv-row"><span class="fv-label">Timezone</span><div class="fv-bar-wrap"><div class="fv-bar" style="width:95%"></div></div><span class="fv-pct">95%</span></div>
+      </div>
+    </div>
+    <div class="bento b2"><div class="b-icon">01</div><div class="b-title">Exact level matching</div><div class="b-desc">0 internships or 60 cases done — practice with someone at your exact stage.</div></div>
+    <div class="bento b3"><div class="b-icon">02</div><div class="b-title">Format-aware</div><div class="b-desc">McKinsey interviewer-led. BCG interviewee-led. IB technicals or fit. We match the format.</div></div>
+    <div class="bento b4"><div class="b-icon">03</div><div class="b-title">Language-aware</div><div class="b-desc">Prep in French, German, Mandarin or Spanish. We match you with someone who speaks your language.</div></div>
+    <div class="bento b5"><div class="b-icon">04</div><div class="b-title">Zero friction</div><div class="b-desc">Match found → both get an email with each other's profile + a Google Meet link. No app, no DMs.</div></div>
+    <div class="bento b6"><div class="b-icon">05</div><div class="b-title">Availability matching</div><div class="b-desc">You mark your slots. We only pair people who can actually meet — and suggest an exact time in the email based on your overlap.</div></div>
+  </div>
+</div>
+
 
 <!-- FINAL CTA -->
 <div style="padding:8rem 5%;text-align:center;border-top:1px solid var(--b);" class="rv">
@@ -471,7 +434,7 @@ tr:hover td{background:rgba(255,31,95,0.03);}
     <div class="ey" style="justify-content:center;">Ready?</div>
     <div style="font-family:'Instrument Serif',serif;font-size:clamp(2.2rem,4vw,3.8rem);letter-spacing:-0.03em;line-height:1.1;margin-bottom:1rem;color:var(--ws);">Join the pool.<br>Get your <em style="font-style:italic;color:var(--pink);">training match.</em></div>
     <p style="font-size:0.92rem;color:var(--g);font-weight:300;margin-bottom:2.5rem;line-height:1.7;">Free. Sign in with Google. Choose consulting or IB. We'll email you the moment your match is found — with a Google Meet link included.</p>
-    <button class="btn-p" style="font-size:1rem;padding:1rem 2.8rem;" onclick="handleCTA()">Get matched now →</button>
+    <button class="btn-p" style="font-size:1rem;padding:1rem 2.8rem;" onclick="handleCTA()">Sign up &amp; get matched →</button>
   </div>
 </div>
 
@@ -510,9 +473,9 @@ tr:hover td{background:rgba(255,31,95,0.03);}
   <p style="font-size:0.78rem;color:var(--g);font-weight:300;margin-bottom:2.5rem;">Consulting cases · Investment Banking · Always free</p>
   <button class="google-btn" onclick="signInWithGoogle()">
     <svg viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
-    Continue with Google
+    Sign up with Google
   </button>
-  <p class="pv-note">Your profile is saved to your account — no need to fill it in again next time.</p>
+  
 </div>
 
 <!-- ══════════ SIGNUP FORM ══════════ -->
@@ -835,7 +798,7 @@ function updateNavForUser(){
     cta.textContent='My profile →';
   } else {
     nu.classList.remove('show');
-    cta.textContent='Get matched →';
+    cta.textContent='Sign up &amp; get matched →';
   }
 }
 
