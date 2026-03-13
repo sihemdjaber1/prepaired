@@ -678,7 +678,7 @@ const sb=supabase.createClient(SB_URL,SB_KEY);
 
 // ── EMAILJS ──────────────────────────────────────────────
 emailjs.init('P1LHt_pms0nuXgSYV');
-const EJ_SVC='service_kii43cf';
+const EJ_SVC='service_bdkf2aa';
 const EJ_TPL='template_a4709zq';
 const EJ_KEY='P1LHt_pms0nuXgSYV';
 
@@ -1161,9 +1161,9 @@ async function autoMatch(newProfile){
       meetLink=`https://whereby.com/prepaired-${rnd(8)}`;
     }
     const reason=`Same level, shared language & availability`;
-    await sendMatchEmails(newProfile,best,meetLink,reason,displayScore(newProfile,best));
     await sb.from('profiles').update({status:'matched',matched_with:best.user_id,meet_link:meetLink,matched_at:new Date().toISOString()}).eq('user_id',newProfile.user_id);
     await sb.from('profiles').update({status:'matched',matched_with:newProfile.user_id,meet_link:meetLink,matched_at:new Date().toISOString()}).eq('user_id',best.user_id);
+    await sendMatchEmails(newProfile,best,meetLink,reason,displayScore(newProfile,best));
     console.log('Auto-matched:',newProfile.name,'↔',best.name,'score:',bestScore);
   }catch(e){console.error('Auto-match failed:',e);}
 }
@@ -1359,8 +1359,11 @@ async function runMatch(){
     const{aOk,bOk}=await sendMatchEmails(pa,pb,meetLink,pair.reason||'Compatible match',displayScore(pa,pb));
 
     // Update both profiles in Supabase
-    await sb.from('profiles').update({status:'matched',matched_with:pb.user_id,meet_link:meetLink,matched_at:new Date().toISOString()}).eq('user_id',pa.user_id);
-    await sb.from('profiles').update({status:'matched',matched_with:pa.user_id,meet_link:meetLink,matched_at:new Date().toISOString()}).eq('user_id',pb.user_id);
+    const upA=await sb.from('profiles').update({status:'matched',matched_with:pb.user_id,meet_link:meetLink,matched_at:new Date().toISOString()}).eq('user_id',pa.user_id);
+    const upB=await sb.from('profiles').update({status:'matched',matched_with:pa.user_id,meet_link:meetLink,matched_at:new Date().toISOString()}).eq('user_id',pb.user_id);
+    if(upA.error)console.error('Update A failed:',upA.error);
+    if(upB.error)console.error('Update B failed:',upB.error);
+    if(upA.error||upB.error)continue;
 
     const c=cols[i%cols.length];
     const emailBadge=(ok)=>`<span class="email-status ${ok?'email-ok':'email-fail'}">${ok?'email sent':'email failed'}</span>`;
