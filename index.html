@@ -680,6 +680,7 @@ const sb=supabase.createClient(SB_URL,SB_KEY);
 const EJ_SVC='service_27p16of';
 const EJ_TPL='template_a4709zq';
 const EJ_KEY='P1LHt_pms0nuXgSYV';
+const RESEND_KEY='re_PVjqpn9k_44KeYLwfJNE9NnaivNAcBUfH';
 
 // ── SLOT → TIME HELPERS ──────────────────────────────────
 // ── TIMEZONE-AWARE SLOT MATCHING ────────────────────────
@@ -1265,24 +1266,53 @@ async function sendMatchEmails(pa, pb, meetLink, reason, score){
     suggested_time:displayB.timeStr
   };
 
+  async function sendOne(to, userName, partnerName, partnerLevel, partnerFirms, partnerLangs, partnerCity, slot, meetLink, reason, score){
+    const html=`<div style="font-family:sans-serif;max-width:520px;margin:0 auto;background:#0D0E12;color:#B0B4C8;padding:2rem;border-radius:12px;">
+<div style="font-size:1.4rem;font-weight:700;color:#E2E5F0;margin-bottom:0.3rem;">✦ Your Prepaired match is ready.</div>
+<div style="font-size:0.85rem;color:#5A5C68;margin-bottom:2rem;">Here's everything you need to start prepping.</div>
+<div style="background:#13141A;border:1px solid rgba(255,31,95,0.2);border-radius:10px;padding:1.5rem;margin-bottom:1.5rem;">
+  <div style="font-size:0.6rem;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;color:#FF1F5F;margin-bottom:0.6rem;">Your training partner</div>
+  <div style="font-size:1.3rem;font-weight:700;color:#E2E5F0;margin-bottom:0.4rem;">${partnerName}</div>
+  <div style="font-size:0.82rem;color:#5A5C68;line-height:1.7;">${partnerLevel} · ${partnerCity}<br>${partnerFirms}<br>${partnerLangs}</div>
+</div>
+<div style="background:#13141A;border:1px solid rgba(255,31,95,0.2);border-radius:10px;padding:1.5rem;margin-bottom:1.5rem;">
+  <div style="font-size:0.6rem;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;color:#FF1F5F;margin-bottom:0.6rem;">Suggested session</div>
+  <div style="font-size:1rem;color:#E2E5F0;">${slot}</div>
+</div>
+<a href="${meetLink}" style="display:block;background:#FF1F5F;color:#fff;text-align:center;padding:1rem 2rem;border-radius:8px;text-decoration:none;font-weight:700;font-size:0.95rem;margin-bottom:1.5rem;">Join Google Meet →</a>
+<div style="font-size:0.72rem;color:#5A5C68;line-height:1.7;">Match reason: ${reason}<br>Compatibility: ${score}/100</div>
+<div style="margin-top:2rem;padding-top:1rem;border-top:1px solid rgba(255,255,255,0.05);font-size:0.65rem;color:#5A5C68;">Prepaired · prepaired.co · Always free</div>
+</div>`;
+    const res=await fetch('https://api.resend.com/emails',{
+      method:'POST',
+      headers:{'Authorization':'Bearer '+RESEND_KEY,'Content-Type':'application/json'},
+      body:JSON.stringify({
+        from:'Prepaired <prepaired@prepaired.co>',
+        to:[to],
+        subject:`✦ Your Prepaired match: ${partnerName}`,
+        html
+      })
+    });
+    const data=await res.json();
+    return res.ok;
+  }
+
   let aOk=false,bOk=false;
+  const slotA=sharedLabel?`${displayA.dateStr} at ${displayA.timeStr} (your local time)`:'Coordinate directly with your partner';
+  const slotB=sharedLabel?`${displayB.dateStr} at ${displayB.timeStr} (your local time)`:'Coordinate directly with your partner';
   try{
-    emailjs.init(EJ_KEY);
-    const ra=await Promise.race([
-      emailjs.send(EJ_SVC,EJ_TPL,emailA),
-      new Promise((_,rej)=>setTimeout(()=>rej(new Error('timeout')),8000))
+    aOk=await Promise.race([
+      sendOne(pa.email,pa.name,pb.name,pb.level,(pb.firms||[]).join(', '),(pb.langs||[]).join(', '),pb.city,slotA,meetLink,reason,score),
+      new Promise((_,rej)=>setTimeout(()=>rej(new Error('timeout')),10000))
     ]);
-    aOk=ra?.status===200;
-    console.log('Email A:',ra);
+    console.log('Email A ok:',aOk);
   }catch(e){console.error('Email A failed:',e);}
   try{
-    emailjs.init(EJ_KEY);
-    const rb=await Promise.race([
-      emailjs.send(EJ_SVC,EJ_TPL,emailB),
-      new Promise((_,rej)=>setTimeout(()=>rej(new Error('timeout')),8000))
+    bOk=await Promise.race([
+      sendOne(pb.email,pb.name,pa.name,pa.level,(pa.firms||[]).join(', '),(pa.langs||[]).join(', '),pa.city,slotB,meetLink,reason,score),
+      new Promise((_,rej)=>setTimeout(()=>rej(new Error('timeout')),10000))
     ]);
-    bOk=rb?.status===200;
-    console.log('Email B:',rb);
+    console.log('Email B ok:',bOk);
   }catch(e){console.error('Email B failed:',e);}
 
   return{aOk,bOk};
