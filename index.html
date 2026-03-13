@@ -6,7 +6,6 @@
 <title>Prepaired — Find Your Case Partner</title>
 <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital,wght@0,400;1,400&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
 <style>
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
 :root{
@@ -677,10 +676,6 @@ const SB_KEY='sb_publishable_KBssRnU1sUVtR86VZEafdQ_-CBRiL_T';
 const sb=supabase.createClient(SB_URL,SB_KEY);
 
 // ── EMAILJS ──────────────────────────────────────────────
-emailjs.init('P1LHt_pms0nuXgSYV');
-const EJ_SVC='service_bdkf2aa';
-const EJ_TPL='template_a4709zq';
-const EJ_KEY='P1LHt_pms0nuXgSYV';
 
 // ── SLOT → TIME HELPERS ──────────────────────────────────
 // ── TIMEZONE-AWARE SLOT MATCHING ────────────────────────
@@ -1268,22 +1263,19 @@ async function sendMatchEmails(pa, pb, meetLink, reason, score){
 
   let aOk=false,bOk=false;
   try{
-    const r1=await Promise.race([
-      emailjs.send(EJ_SVC,EJ_TPL,emailA,EJ_KEY),
-      new Promise((_,rej)=>setTimeout(()=>rej(new Error('timeout')),8000))
+    const res=await Promise.race([
+      fetch('https://reugkvdvfhqpxvbmxlox.supabase.co/functions/v1/send-match-email',{
+        method:'POST',
+        headers:{'Content-Type':'application/json','Authorization':'Bearer '+sb.supabaseKey},
+        body:JSON.stringify({emailA,emailB})
+      }),
+      new Promise((_,rej)=>setTimeout(()=>rej(new Error('timeout')),15000))
     ]);
-    aOk=true;
-    console.log('Email A sent',r1);
-  } catch(e){console.error('Email A failed:',e);}
-
-  try{
-    const r2=await Promise.race([
-      emailjs.send(EJ_SVC,EJ_TPL,emailB,EJ_KEY),
-      new Promise((_,rej)=>setTimeout(()=>rej(new Error('timeout')),8000))
-    ]);
-    bOk=true;
-    console.log('Email B sent',r2);
-  } catch(e){console.error('Email B failed:',e);}
+    const data=await res.json();
+    aOk=data.aOk||false;
+    bOk=data.bOk||false;
+    console.log('Emails sent via Resend',data);
+  } catch(e){console.error('Email send failed:',e);}
 
   return{aOk,bOk};
 }
