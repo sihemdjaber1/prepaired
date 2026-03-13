@@ -1297,23 +1297,28 @@ async function sendMatchEmails(pa, pb, meetLink, reason, score){
     return res.ok;
   }
 
-  let aOk=false,bOk=false;
   const slotA=sharedLabel?`${displayA.dateStr} at ${displayA.timeStr} (your local time)`:'Coordinate directly with your partner';
   const slotB=sharedLabel?`${displayB.dateStr} at ${displayB.timeStr} (your local time)`:'Coordinate directly with your partner';
+
+  // Build email payloads
+  const eA={to_email:pa.email,user_name:pa.name,partner_name:pb.name,partner_level:pb.level,partner_firms:(pb.firms||[]).join(', '),partner_langs:(pb.langs||[]).join(', '),partner_city:pb.city,shared_slot:slotA,meet_link:meetLink,match_reason:reason,match_score:score};
+  const eB={to_email:pb.email,user_name:pb.name,partner_name:pa.name,partner_level:pa.level,partner_firms:(pa.firms||[]).join(', '),partner_langs:(pa.langs||[]).join(', '),partner_city:pa.city,shared_slot:slotB,meet_link:meetLink,match_reason:reason,match_score:score};
+
+  let aOk=false,bOk=false;
   try{
-    aOk=await Promise.race([
-      sendOne(pa.email,pa.name,pb.name,pb.level,(pb.firms||[]).join(', '),(pb.langs||[]).join(', '),pb.city,slotA,meetLink,reason,score),
-      new Promise((_,rej)=>setTimeout(()=>rej(new Error('timeout')),10000))
+    const res=await Promise.race([
+      fetch('https://reugkvdvfhqpxvbmxlox.supabase.co/functions/v1/send-match-email',{
+        method:'POST',
+        headers:{'Content-Type':'application/json','Authorization':'Bearer '+SB_KEY,'apikey':SB_KEY},
+        body:JSON.stringify({emailA:eA,emailB:eB})
+      }),
+      new Promise((_,rej)=>setTimeout(()=>rej(new Error('timeout')),15000))
     ]);
-    console.log('Email A ok:',aOk);
-  }catch(e){console.error('Email A failed:',e);}
-  try{
-    bOk=await Promise.race([
-      sendOne(pb.email,pb.name,pa.name,pa.level,(pa.firms||[]).join(', '),(pa.langs||[]).join(', '),pa.city,slotB,meetLink,reason,score),
-      new Promise((_,rej)=>setTimeout(()=>rej(new Error('timeout')),10000))
-    ]);
-    console.log('Email B ok:',bOk);
-  }catch(e){console.error('Email B failed:',e);}
+    const data=await res.json();
+    aOk=data.aOk||false;
+    bOk=data.bOk||false;
+    console.log('Emails via Edge Function:',data);
+  }catch(e){console.error('Email send failed:',e);}
 
   return{aOk,bOk};
 }
