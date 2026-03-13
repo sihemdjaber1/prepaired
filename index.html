@@ -1306,7 +1306,7 @@ async function sendMatchEmails(pa, pb, meetLink, reason, score){
   let aOk=false,bOk=false;
   try{
     const res=await Promise.race([
-      fetch('https://reugkvdvfhqpxvbmxlox.supabase.co/functions/v1/send-match-email',{
+      fetch('https://reugkvdvfhqpxvbmxlox.supabase.co/functions/v1/quick-endpoint',{
         method:'POST',
         headers:{'Content-Type':'application/json','Authorization':'Bearer '+SB_KEY,'apikey':SB_KEY},
         body:JSON.stringify({emailA:eA,emailB:eB})
