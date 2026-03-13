@@ -1150,14 +1150,15 @@ async function autoMatch(newProfile){
     let meetLink='';
     try{
       const wr=await fetch('https://reugkvdvfhqpxvbmxlox.supabase.co/functions/v1/swift-processor',{
-        method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+SB_KEY,'apikey':SB_KEY}
+        method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+SB_KEY,'apikey':SB_KEY},
+        body:JSON.stringify({})
       });
       const wd=await wr.json();
-      meetLink=wd.roomUrl||'';
+      if(!wd.roomUrl)throw new Error('No roomUrl: '+JSON.stringify(wd));
+      meetLink=wd.roomUrl;
     }catch(e){
-      const alpha='abcdefghijkmnopqrstuvwxyz';
-      const rnd=(n)=>Array.from({length:n},()=>alpha[Math.floor(Math.random()*alpha.length)]).join('');
-      meetLink=`https://whereby.com/prepaired-${rnd(8)}`;
+      console.error('Whereby error:',e);
+      return;
     }
     const reason=`Same level, shared language & availability`;
     await sb.from('profiles').update({status:'matched',matched_with:best.user_id,meet_link:meetLink,matched_at:new Date().toISOString()}).eq('user_id',newProfile.user_id);
@@ -1278,7 +1279,7 @@ async function sendMatchEmails(pa, pb, meetLink, reason, score){
   <div style="font-size:0.6rem;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;color:#FF1F5F;margin-bottom:0.6rem;">Suggested session</div>
   <div style="font-size:1rem;color:#E2E5F0;">${slot}</div>
 </div>
-<a href="${meetLink}" style="display:block;background:#FF1F5F;color:#fff;text-align:center;padding:1rem 2rem;border-radius:8px;text-decoration:none;font-weight:700;font-size:0.95rem;margin-bottom:1.5rem;">Join Google Meet →</a>
+<a href="${meetLink}" style="display:block;background:#FF1F5F;color:#fff;text-align:center;padding:1rem 2rem;border-radius:8px;text-decoration:none;font-weight:700;font-size:0.95rem;margin-bottom:1.5rem;">Join Video Call →</a>
 <div style="font-size:0.72rem;color:#5A5C68;line-height:1.7;">Match reason: ${reason}<br>Compatibility: ${score}/100</div>
 <div style="margin-top:2rem;padding-top:1rem;border-top:1px solid rgba(255,255,255,0.05);font-size:0.65rem;color:#5A5C68;">Prepaired · prepaired.co · Always free</div>
 </div>`;
@@ -1374,7 +1375,8 @@ async function runMatch(){
     try{
       const wr=await fetch('https://reugkvdvfhqpxvbmxlox.supabase.co/functions/v1/swift-processor',{
         method:'POST',
-        headers:{'Content-Type':'application/json','Authorization':'Bearer '+SB_KEY,'apikey':SB_KEY}
+        headers:{'Content-Type':'application/json','Authorization':'Bearer '+SB_KEY,'apikey':SB_KEY},
+        body:JSON.stringify({})
       });
       const wd=await wr.json();
       meetLink=wd.roomUrl||'';
