@@ -105,7 +105,7 @@
   #case-content{padding:1rem;flex:1;}
   #case-content .case-label{font-size:0.6rem;font-weight:700;letter-spacing:0.13em;text-transform:uppercase;color:var(--pink);margin-bottom:0.5rem;}
   #case-content .case-title{font-size:1rem;font-weight:700;color:var(--w);margin-bottom:0.8rem;line-height:1.4;}
-  #case-content .case-body{font-size:0.78rem;color:#B0B4C8;line-height:1.7;white-space:pre-line;}
+  #case-content .case-body{font-size:0.78rem;color:#B0B4C8;line-height:1.7;white-space:pre-line;word-break:break-word;}
   #case-content .case-section{margin-top:1rem;padding-top:1rem;border-top:1px solid var(--border);}
   #case-content .case-section-title{font-size:0.65rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--g);margin-bottom:0.4rem;}
   /* ── SESSION TOOLBAR ── */
@@ -743,140 +743,726 @@ let casePanel = false;
 let roundCount = 0;
 
 const CASES = {
+
   'M&A': [
-    { title: 'TechCorp Acquisition', body: `Your client, a European PE fund, is considering acquiring TechCorp, a SaaS company with €40M ARR growing at 30% YoY.
-
-Key prompt: "Our client wants to know if this acquisition makes strategic sense and what they should pay for it."
-
-Guide the candidate through:
-1. Strategic rationale (why acquire?)
-2. Valuation approach (revenue multiples, DCF)
-3. Key risks & synergies
-4. Integration considerations
-
-Expected duration: 25–35 min` },
-    { title: 'Pharma Merger', body: `A large French pharma company is evaluating a merger with a Swiss biotech.
-
-Key prompt: "Our client wants to assess whether this merger creates value and how to structure the deal."
-
-Guide through:
-1. Strategic fit
-2. Revenue & cost synergies
-3. Regulatory hurdles
-4. Deal structure (share vs cash)
-
-Expected duration: 25–35 min` },
+    {
+      title: 'NordEx / Veloce — Last-Mile Acquisition',
+      setup: `Read aloud to the candidate:\n\n"Our client is NordEx, a pan-European e-commerce fulfillment company. They are considering acquiring Veloce, an Italian last-mile delivery startup operating in 6 cities — Milan, Rome, Turin, Naples, Florence, and Bologna. The deal is valued at €180M. Our job is to advise NordEx on whether this acquisition makes strategic and financial sense. Where would you like to start?"`,
+      strong_start: `Candidate should pause, structure, then present a framework before asking questions.\nListen for 3 buckets:\n• Strategic fit — does Veloce complement NordEx's capabilities?\n• Financial health — is €180M a fair price?\n• Risks / red flags — what could blow up post-acquisition?\n\n→ If they dive into questions without structuring: "Before we dig in, how are you thinking about this overall?"`,
+      parts: [
+        {
+          title: 'Part 1 — Strategic Fit',
+          prompt: `Say: "Good. Let's start with strategy. Here's what we know about Veloce."\n\nShare:\n• Veloce: tech-enabled gig-economy driver model — no owned fleet\n• 92% revenue from same-day / next-day for fashion e-commerce\n• NordEx: zero last-mile capability — hands off to DHL/GLS at warehouse door\n• NordEx top 3 clients requesting last-mile integration for 18 months\n• NordEx in 12 countries across Northern/Central Europe — zero Southern Europe presence\n\nAsk: "What's your read on strategic fit?"`,
+          strong: `✔ Veloce fills genuine gap — last-mile missing from NordEx\n✔ Responds directly to client demand (18 months of requests)\n✔ Gig model = low capex, asset-light\n✔ Italy as foothold into Southern Europe`,
+          watch: `⚠ Saying 'good fit' without probing client concentration\n⚠ Missing gig model regulatory exposure (EU gig worker laws)\n⚠ Not questioning NordEx's zero last-mile experience\n⚠ Missing 78% revenue concentration in fashion — cyclical risk`,
+          followups: `"Veloce makes 78% of its revenue from 3 clients. Does that change anything?"\n"NordEx has never run a last-mile operation before. Is that relevant?"\n\nClose: "On stand-alone value — what's your verdict?" Make them commit before moving on.`
+        },
+        {
+          title: 'Part 2 — Financial Analysis',
+          prompt: `Say: "Let's look at the numbers."\n\nShare P&L:\n  Revenue: €42M\n  Gross Margin: 38%\n  EBITDA: €6.3M\n  Net Debt: €8M\n  YoY Growth: 31%\n\nAsk: "NordEx is paying €180M. How do you think about whether that's reasonable?"`,
+          strong: `Key calc: €180M ÷ €6.3M = 28.6x EBITDA\nTypical logistics range: 8–14x. High — but 31% growth may justify premium.\n\nSynergy push: "If NordEx adds €8M synergies by year 2?"\n→ €6.3M + €8M = €14.3M → €180M ÷ €14.3M ≈ 12.6x ✔ within range\n\nRisk push: "Synergies are year 2. What's the risk between now and then?"\n→ Integration risk, synergies not guaranteed, if founders leave revenue collapses`,
+          watch: `⚠ Not calculating a multiple independently\n⚠ Accepting synergies at face value without stress-testing\n⚠ Missing the time value problem — paying full price today for year-2 value`,
+          followups: `"On synergies — do they make the price defensible, yes or no?" Don't accept 'it depends' without a named condition.`
+        },
+        {
+          title: 'Part 3 — Risks & Capabilities',
+          prompt: `Say: "If you were signing off on this deal, what would keep you up at night?"\n\nGo silent. Let them build their risk list.\n\nTrack:\n□ Client concentration (78% from 3 clients)\n□ Fashion sector cyclicality\n□ NordEx zero last-mile experience\n□ Business model clash (asset-heavy vs asset-light)\n□ Gig worker EU regulatory risk\n□ Geographic unfamiliarity (first time in Italy)`,
+          strong: `For missed risks — nudge before giving answer:\n• "Tell me about Veloce's revenue base. Does anything concern you?" → concentration\n• "What do you know about EU gig worker legislation?" → regulatory\n• "NordEx has never run last-mile. Is that relevant?" → capability gap`,
+          watch: `⚠ Generic risk list without deal-specific depth\n⚠ Not distinguishing manageable risks from deal-breakers`,
+          followups: `CURVEBALL 1: "Veloce's two co-founders hold all key client relationships. No retention agreements. Approached by a competitor. What do you do?"\n→ Strong: retention packages with earnouts, deferred consideration, embed NordEx people now, verify contracts are with legal entity not founders personally\n→ Weak: "That's a major risk" with no mitigations\n\nFollow-up: "We lock in founders for 2 years. They leave at year 2. What happens?"\n→ Want: structural de-risking, not just founder retention\n\nCURVEBALL 2 (if Curveball 1 handled well): "EU legislation may force Veloce to reclassify gig drivers as employees. Implication for the deal?"\n→ Gold: "Stress-test P&L under full reclassification before signing — entire thesis rests on asset-light cost structure"`
+        },
+        {
+          title: 'Part 4 — Final Recommendation',
+          prompt: `Say: "We're walking into the partner meeting in 60 seconds. Proceed, don't proceed, or proceed with conditions. Go."\n\nThen say nothing.`,
+          strong: `Gold standard:\n"I recommend NordEx proceeds, conditionally. Three reasons: strategic fit is real (fills last-mile gap, responds to client demand). At 12.6x pro-forma EBITDA the price is defensible. 31% growth justifies slight premium. Three conditions: founder retention with earnouts tied to revenue targets, confirm client contracts are with legal entity not founders, regulatory stress-test under gig reclassification. If any condition can't be met — we walk away."\n\nStrong answer = clear stance first sentence, 3 reasons max, explicit conditions, named deal-breakers, under 60 seconds`,
+          watch: `⚠ Hedging in the opening sentence\n⚠ "It depends" without named conditions\n⚠ No distinction between risk and fatal flaw`,
+          followups: ``
+        }
+      ]
+    },
+    {
+      title: 'AlphaBank / Finova — Digital Banking M&A',
+      setup: `Read aloud:\n\n"Our client is AlphaBank, a top-5 retail bank in France. They are evaluating the acquisition of Finova, a French neobank with 1.2M active users and €28M in revenue. The deal is valued at €320M — roughly 11x revenue. Our job is to advise AlphaBank on whether to proceed. Where would you like to start?"`,
+      strong_start: `Listen for structure before diving in. Three buckets:\n• Strategic rationale (why buy vs build?)\n• Financial assessment (is 11x revenue defensible?)\n• Integration & risks`,
+      parts: [
+        {
+          title: 'Part 1 — Strategic Rationale',
+          prompt: `Share:\n• Finova: mobile-only, zero-fee model, 80% users aged 18–34\n• AlphaBank: avg customer age 52, losing 40K clients/year under 35\n• Finova's CAC: €18. AlphaBank's CAC for equivalent segment: €210\n• AlphaBank has attempted 3 internal digital projects — all cancelled after 18 months\n\nAsk: "Does the acquisition make strategic sense?"`,
+          strong: `✔ Buy vs build: AlphaBank has demonstrated it cannot build this internally (3 failed projects)\n✔ CAC arbitrage: €18 vs €210 — the acquisition pays for itself in customer acquisition savings\n✔ Demographic urgency: losing 40K under-35s/year is an existential slow bleed\n✔ Speed to market: organic would take 3–5 years minimum`,
+          watch: `⚠ Not quantifying the buy vs build trade-off\n⚠ Missing the demographic urgency angle\n⚠ Not questioning whether AlphaBank can retain Finova's culture post-acquisition`,
+          followups: `"What's the risk that Finova's users leave the moment AlphaBank's name appears on the app?"`
+        },
+        {
+          title: 'Part 2 — Valuation',
+          prompt: `"11x revenue seems expensive for a loss-making neobank. How do you defend it — or don't you?"\n\nFinova data:\n  Revenue: €28M (growing 65% YoY)\n  EBITDA: -€4M\n  Users: 1.2M active (growing 80% YoY)\n  LTV estimate: €380/user (AlphaBank internal)\n  Churn: 8%/year`,
+          strong: `Approaches to defend:\n1. Revenue multiple: 11x on 65% growth — compare to Revolut (raised at 40x revenue), Monzo — premium for hypergrowth is market-standard\n2. User value: 1.2M × €380 LTV = €456M implied value → €320M looks cheap\n3. CAC savings: acquiring 1.2M users organically at €210 = €252M just in CAC — deal nearly pays for itself\n\n"Is 11x defensible?" → Yes, conditionally — if growth sustains and churn doesn't accelerate post-acquisition`,
+          watch: `⚠ Dismissing the multiple without running alternative valuations\n⚠ Not flagging that LTV estimates are AlphaBank's own — potentially optimistic`,
+          followups: `"What happens to LTV if users churn at 20% post-acquisition instead of 8%?"\n→ Want: sensitivity analysis on the user value thesis`
+        },
+        {
+          title: 'Part 3 — Integration Risks',
+          prompt: `"What keeps you up at night on integration?"\n\nCurveball: "Finova's CEO has publicly stated she would never sell to a traditional bank. She owns 18% of the company and is not a mandatory seller."\n\nWhat do you do?`,
+          strong: `Key risks to surface:\n• Brand contamination — AlphaBank association destroys Finova's positioning\n• Culture clash — startup vs 150-year-old bank\n• Regulatory complexity — banking licenses, data protection\n• Tech stack incompatibility\n\nOn CEO curveball:\n✔ Understand her motivations — is this negotiating posture or genuine?\n✔ Structure deal to preserve Finova brand and operational independence\n✔ Offer CEO meaningful autonomy (subsidiary model, not absorption)\n✔ Consider minority stake first as trust-building step before full acquisition`,
+          watch: `⚠ Recommending to force the acquisition without addressing CEO alignment\n⚠ Missing brand contamination as the #1 integration risk for a neobank`,
+          followups: `"If we keep Finova as a fully independent subsidiary — does that defeat the purpose of the acquisition?"\n→ Tests whether they understand the tension between independence (preserves value) and integration (captures synergies)`
+        },
+        {
+          title: 'Final Recommendation',
+          prompt: `"Board meeting in 60 seconds. Go."`,
+          strong: `Gold: "Proceed conditionally. Strategic rationale is compelling — AlphaBank cannot build this organically (proven by 3 failures), Finova's CAC is 12x cheaper than AlphaBank's, and the demographic urgency is real. At €320M we're paying for growth that's currently delivering 65% YoY — defensible if we maintain it. Three conditions: operate Finova as independent subsidiary with its own brand and culture for minimum 3 years, secure CEO alignment with meaningful autonomy, and model churn scenarios before finalizing LTV assumptions. If CEO won't align on any terms — we explore alternatives, but we don't abandon the strategic need."`,
+          watch: `⚠ Recommending against without proposing structural solutions\n⚠ Not flagging that the strategic need (under-35 acquisition) doesn't go away even if this deal fails`,
+          followups: ``
+        }
+      ]
+    }
   ],
+
   'Profitability': [
-    { title: 'Retail Chain Declining Margins', body: `A mid-sized European retail chain has seen EBITDA margins fall from 12% to 6% over 3 years despite stable revenues.
+    {
+      title: 'LuxAir — Structural Margin Collapse',
+      setup: `Read aloud:\n\n"Our client is LuxAir, a mid-sized European airline. Five years ago they had a 14% EBITDA margin. Today it's 3%. Revenue has been flat at €1.1B. The CEO wants to understand what's happening and whether the business is structurally viable. Where would you like to start?"`,
+      strong_start: `Listen for the profit tree structure: Revenue (volume × price) vs Costs (fixed vs variable). They should not jump to solutions before diagnosing.`,
+      parts: [
+        {
+          title: 'Part 1 — Diagnosis',
+          prompt: `Share (only when asked):\n• Revenue/passenger: down from €210 to €185 (-12%) over 5 years\n• Load factor: stable at 82%\n• Fleet size: grew from 48 to 61 aircraft (+27%)\n• Fuel cost: up 38% per flight (external)\n• Staff costs: up 22% (new union agreement)\n• Maintenance: up 41% (older fleet)\n• Distribution costs: flat\n\nAsk: "What's driving the margin compression?"`,
+          strong: `Revenue: yield decline (-12%) despite stable load factor → price pressure (competition? mix shift? route changes?)\nCosts: triple cost shock — fuel (+38%), staff (+22%), maintenance (+41%) — hitting simultaneously\nKey insight: fleet expansion (+27%) increased fixed cost base without revenue per seat to match\n→ The problem is not one thing — it's yield compression compounded by cost inflation compounded by an overly optimistic fleet expansion`,
+          watch: `⚠ Blaming only fuel without quantifying relative impact\n⚠ Missing the fleet expansion as a self-inflicted cost driver\n⚠ Solutions before completing diagnosis`,
+          followups: `"Load factor is stable at 82%. Is that good or bad in context?"\n→ Stable load factor with falling yield = they're filling seats but at lower prices — race to bottom pricing\n"The fleet grew 27% but revenue is flat. What does that tell you?"\n→ Overcapacity — they built for growth that didn't materialize`
+        },
+        {
+          title: 'Part 2 — Revenue Recovery',
+          prompt: `"Let's focus on yield. Revenue per passenger has dropped €25. How do you get it back?"\n\nShare: LuxAir's route mix is 60% leisure, 40% business. Business routes down from 48% to 40% over 5 years.`,
+          strong: `Revenue levers:\n✔ Protect and grow business routes — highest yield, most defensible\n✔ Dynamic pricing — are they leaving money on the table vs competitors?\n✔ Ancillary revenue — bags, seat selection, meals (currently €8/pax vs industry avg €22)\n✔ Route rationalisation — exit loss-making leisure routes, redeploy to business corridors\n✔ Corporate contracts — lock in yield with multi-year agreements`,
+          watch: `⚠ Generic "raise prices" without competitive context\n⚠ Not distinguishing leisure vs business yield dynamics`,
+          followups: `"LuxAir's ancillary revenue is €8/passenger. Industry average is €22. What's the opportunity?"\n→ Want: (€22-€8) × passenger volume = quantified upside before recommending`
+        },
+        {
+          title: 'Part 3 — Cost Restructuring',
+          prompt: `"The CEO wants a 400bps margin improvement in 18 months. Is that achievable?"\n\nCurveball: "The pilot union has just announced it will strike if any routes are cut. 40% of staff costs are pilots."\n\nWhat changes?`,
+          strong: `Cost levers available:\n• Fleet: retire oldest aircraft (highest maintenance cost) — reduces both maintenance and fuel per seat\n• Network: cut 8 worst-performing routes (need data, but frame the approach)\n• Procurement: renegotiate fuel hedging, maintenance contracts\n• Distribution: shift from legacy GDS to direct booking (lower commission)\n\nOn strike curveball:\n✔ Route cuts become politically very costly — sequence matters\n✔ Sequencing: start with non-route cost levers (fleet retirement, ancillaries, procurement) before touching network\n✔ Reframe cuts as "network optimisation" — add routes in growth areas while exiting shrinking ones\n✔ Strike risk = negotiate, not capitulate — offer profit-sharing tied to recovery targets`,
+          watch: `⚠ Abandoning route rationalisation entirely because of union threat\n⚠ Not sequencing quick wins (ancillaries, procurement) before structural moves (routes, fleet)`,
+          followups: `"If you had to get 200bps of margin improvement without touching routes or headcount — what do you do?"\n→ Forces prioritisation of non-structural levers: ancillaries, hedging, distribution`
+        },
+        {
+          title: 'Final Recommendation',
+          prompt: `"Board in 60 seconds. Is LuxAir structurally viable, and what's the plan?"`,
+          strong: `Gold: "LuxAir is structurally viable but needs a 3-lever recovery: first, revenue — protect business routes, close the €14 ancillary gap vs industry, lock corporate contracts. Second, costs — retire the 8 oldest aircraft in 12 months, renegotiate maintenance and fuel hedging, shift 20% of distribution to direct. Third, network — exit 5–8 loss-making leisure routes, but sequence this after quick wins to manage union risk. 400bps in 18 months is achievable if fleet retirement and ancillaries are executed fast — that alone could deliver 250bps. The structural viability question depends on whether they can defend business routes against low-cost competition. That's the strategic bet."`,
+          watch: `⚠ "Viable" or "not viable" without conditions\n⚠ Plan without sequencing or timeline`,
+          followups: ``
+        }
+      ]
+    }
+    {
+      title: 'RetailCo — Fashion Chain Margin Erosion',
+      setup: `Read aloud:
 
-Key prompt: "Our client wants to understand why margins are declining and what to do about it."
+"Our client is RetailCo, a French mid-market fashion retailer with 210 stores and €680M in revenue. Three years ago their EBITDA margin was 11%. Today it's 4%. The Board is considering whether to restructure or sell the business. They've asked us to diagnose the problem and recommend a path forward. Where would you like to start?"`,
+      strong_start: `Should build a profit tree before asking for data. Revenue (traffic × conversion × basket size) vs Costs (COGS, rent, staff, marketing). Red flag: jumping to 'close stores' before diagnosing.`,
+      parts: [
+        {
+          title: 'Part 1 — Revenue Diagnosis',
+          prompt: `"Walk me through how you'd diagnose the revenue side."
 
-Guide through:
-1. Revenue vs cost diagnosis
-2. Product mix / pricing issues
-3. Cost structure (COGS, SG&A)
-4. Recommendations
+Share when asked:
+• Store traffic: down 22% over 3 years
+• Conversion rate: stable at 31%
+• Average basket: up from €48 to €54 (+12.5%)
+• Online revenue: grew from €12M to €38M but at 3% EBITDA margin vs 14% in-store
+• Online now 5.6% of total revenue
+• Market context: total French fashion market down 8% over same period`,
+          strong: `✔ Traffic is the core problem — down 22% while market down only 8% → RetailCo losing share
+✔ Basket size up 12.5% — customers who come in spend more, but fewer are coming
+✔ Conversion stable — store experience isn't broken, acquisition is
+✔ Online growing but margin-dilutive at 3% — shifting mix is compressing blended margin
+✔ Online growth (€26M added) at 3% vs lost in-store revenue at 14% = structural margin drag`,
+          watch: `⚠ Praising online growth without flagging the margin differential
+⚠ Missing that market decline (-8%) doesn't explain a -22% traffic drop — competitive share loss is happening`,
+          followups: `"If online margins are 3% vs 14% in-store, and online is growing — what happens to blended margin even if everything else stays constant?"
+→ Online mix shift alone explains ~150bps of margin compression`
+        },
+        {
+          title: 'Part 2 — Cost Diagnosis',
+          prompt: `"Now the cost side. What's driving cost inflation?"
 
-Expected duration: 20–30 min` },
-    { title: 'Airline Losses', body: `A regional airline has been loss-making for 2 years after being profitable for a decade.
+Share:
+• Rent: fixed leases signed 2018–2020, costs up 18% vs revenue (rent as % of revenue: 9% → 14%)
+• COGS: stable at 42% of revenue
+• Staff: up 11% absolute, but revenue down → staff as % of revenue: 18% → 24%
+• Marketing: doubled to drive online growth — €28M vs €14M 3 years ago
+• Markdown rate: up from 18% to 29% of inventory`,
+          strong: `Three cost issues:
+1. Operating leverage working against them — fixed rent and staff on falling revenue = deleveraging
+2. Marketing spend doubled but mostly driving low-margin online traffic — poor ROI allocation
+3. Markdown rate +11pts → either buying wrong product (demand forecasting issue) or discounting to clear traffic-driven overstock
 
-Key prompt: "Identify the root causes and recommend a path back to profitability."
+Key insight: this isn't primarily a cost problem — it's a revenue problem making fixed costs look worse. Cutting costs alone doesn't fix a -22% traffic decline.`,
+          watch: `⚠ Treating cost inflation in isolation from the revenue decline
+⚠ Missing that markdown rate increase signals inventory/buying problem, not just pricing`,
+          followups: `"The CEO wants to cut 15% of staff to restore margin. What do you think?"
+→ Short-term relief but doesn't fix traffic. If cuts reduce service quality, conversion falls next. Need to fix traffic first.`
+        },
+        {
+          title: 'Part 3 — Restructure or Sell?',
+          prompt: `"The Board's real question: restructure or sell? How do you frame that decision?"
 
-Focus areas: load factor, yield management, fuel costs, competition.
+Curveball: "A PE fund has offered €180M — roughly 4x current EBITDA. RetailCo's peak EBITDA 3 years ago was €74M. A strategic buyer (European fashion group) has offered €240M but only if the deal closes in 90 days."`,
+          strong: `Restructure path:
+✔ Viable if: traffic decline is reversible (brand reposition, store format update, online margin fix)
+✔ Timeline: 18–24 months to see results — needs bridge financing
+✗ Risk: fashion retail structural headwinds, 3 years of decline suggests deep issues
 
-Expected duration: 20–30 min` },
+Sell path:
+• PE €180M = 4x current EBITDA but 2.4x peak — selling at distressed multiple
+• Strategic €240M = 33% premium but 90-day window = pressure
+
+Framework for Board:
+✔ Can the traffic decline be reversed? If yes and with conviction — restructure
+✔ If root cause is structural (location mix, brand fatigue, demographic mismatch) — sell to strategic at €240M before further deterioration
+✔ The 90-day window is a forcing function — don't let it force a bad decision`,
+          watch: `⚠ Recommending sell without framing what 'restructure' would require
+⚠ Accepting €180M PE offer without noting the €240M strategic premium`,
+          followups: `"The strategic buyer wants exclusivity immediately in exchange for the 90-day process. Do you grant it?"
+→ Depends on restructuring conviction. If weak — yes, take the strategic offer. If strong — no, use strategic offer as leverage in parallel process.`
+        },
+        {
+          title: 'Final Recommendation',
+          prompt: `"Board presentation in 60 seconds."`,
+          strong: `Gold: "RetailCo's margin compression is primarily a revenue problem — traffic down 22% vs market -8% signals competitive share loss, not just market decline. On the cost side, fixed lease and staff leverage is working against them, marketing ROI is poor, and a 29% markdown rate signals buying/forecasting dysfunction. The path forward depends on one question: is the traffic decline reversible? If leadership has a credible plan to close the 14-point gap vs market — reposition brand, fix online margin, renegotiate 20–30 worst leases — then restructure is right. If the brand has structurally lost relevance with its target demographic, sell to the strategic buyer at €240M before the window closes — that's 33% above the PE offer and reflects peak earnings potential, not distressed pricing. My recommendation: take 30 days to validate whether a credible traffic recovery plan exists. If yes — restructure with a 12-month milestone. If not — pursue the strategic sale."`,
+          watch: `⚠ Binary sell/restructure without the diagnostic question
+⚠ Not flagging the €60M difference between the two offers`,
+          followups: ``
+        }
+      ]
+    },
   ],
+
   'Market Entry': [
-    { title: 'US Market Entry', body: `A French luxury skincare brand wants to enter the US market.
+    {
+      title: 'GreenBrew — French Craft Beer in Japan',
+      setup: `Read aloud:\n\n"Our client is GreenBrew, a premium French craft beer brand with €45M in revenue and strong distribution across Western Europe. They are considering entering the Japanese market. No decision has been made yet — they've asked us to tell them whether to go, and if so, how. Where would you like to start?"`,
+      strong_start: `Should structure around: Is Japan attractive? Can GreenBrew win? How should they enter?\nRed flag: jumping to entry mode before assessing attractiveness or fit.`,
+      parts: [
+        {
+          title: 'Part 1 — Market Attractiveness',
+          prompt: `"Walk me through how you'd assess whether Japan is an attractive market for craft beer."\n\nShare when asked:\n• Japan craft beer market: €2.1B, growing 18% YoY\n• Craft beer penetration: 6% of total beer market (vs 14% in France)\n• Premium imported beer is a status symbol — top 3 imported brands are all European\n• Dominant player: Kirin/Asahi control 70% of total beer market but <15% of craft\n• Regulatory: no import tariffs on EU beer post-EPA (2019)\n• Distribution: 80% of premium beer sold through speciality retailers and izakayas (traditional bars)`,
+          strong: `✔ Size & growth: €2.1B and +18% — large and fast\n✔ Penetration gap: 6% vs 14% in France — significant headroom\n✔ Structural tailwind: premiumisation trend, European brand cachet\n✔ Competitive gap: Kirin/Asahi weak in craft — no dominant Western craft incumbent\n✔ Tariff removal post-EPA = cost advantage vs pre-2019`,
+          watch: `⚠ Not quantifying the penetration gap as a market opportunity\n⚠ Ignoring that 80% distribution through speciality/izakaya = GreenBrew needs local distribution partner, not just export`,
+          followups: `"The craft segment is fragmented — 200+ local Japanese craft brewers. Does that change your attractiveness view?"\n→ Want: distinction between local craft (different positioning) vs imported premium (GreenBrew's actual competitive set)`
+        },
+        {
+          title: 'Part 2 — GreenBrew Fit',
+          prompt: `"Attractive market — but can GreenBrew actually win there?"\n\nShare:\n• GreenBrew brand: positioned as 'artisanal French terroir' — strong in France and Benelux\n• Japanese consumer research: 73% associate French food/drink with quality and sophistication\n• GreenBrew has no Asia experience — all 12 team members are European\n• Nearest comparable: a Belgian craft beer entered Japan 4 years ago and now has €8M revenue there`,
+          strong: `✔ Brand fit: 'French terroir' positioning resonates strongly — 73% quality association\n✔ Proof of concept: Belgian comparable achieved €8M in 4 years — shows the path exists\n✔ No dominant imported Western craft competitor — first mover opportunity\n\nChallenges:\n⚠ Zero Asia operational experience — knowledge gap\n⚠ Language, regulatory compliance, labelling requirements\n⚠ Need local distribution partner — can't replicate European direct model`,
+          watch: `⚠ Over-weighting brand strength without acknowledging operational capability gap\n⚠ Not asking what the Belgian comparable did right/wrong`,
+          followups: `"GreenBrew's CEO says 'if the Belgian can do €8M, we can do €20M — our brand is stronger.' Is that logic sound?"\n→ Test: brand strength alone doesn't determine revenue — distribution, pricing, channel strategy matter equally`
+        },
+        {
+          title: 'Part 3 — Entry Mode',
+          prompt: `"They want to enter. How?"\n\nOptions on the table:\n1. Export through a Japanese distributor\n2. JV with a local Japanese craft brewer\n3. Acquire a small Japanese craft brewer and rebrand`,
+          strong: `Framework: control vs speed vs risk vs capital\n\nDistributor (Option 1):\n✔ Fastest, lowest capital, lowest risk\n✗ Low control over positioning, margin compressed, no brand building ownership\n→ Right for testing, wrong for building\n\nJV (Option 2):\n✔ Local knowledge, shared risk, distribution access\n✗ Cultural alignment risk, profit sharing, potential IP issues\n→ Best option if right partner found — combines GreenBrew brand with local operational expertise\n\nAcquisition (Option 3):\n✔ Full control, immediate market presence\n✗ High capital, integration risk, cultural clash, rebranding risk\n→ Premature without market validation\n\nRecommendation: start with exclusive distributor for 18 months to validate demand and identify JV candidates, then transition to JV with proven local partner`,
+          watch: `⚠ Recommending acquisition without market validation\n⚠ Not flagging that distributor choice in Japan is critical — wrong partner = brand damage`,
+          followups: `"The best Japanese distributor wants exclusivity for 5 years. Do you accept?"\n→ 5 years is too long — negotiate 2 years with renewal tied to revenue milestones`
+        },
+        {
+          title: 'Final Recommendation',
+          prompt: `"Should GreenBrew enter Japan? Give me a recommendation and a 3-year plan."`,
+          strong: `Gold: "Yes — enter Japan. The market is large (€2.1B), growing fast (+18%), with meaningful penetration headroom (6% vs 14% in France) and no dominant Western craft incumbent. GreenBrew's French terroir positioning is a genuine differentiator — 73% Japanese consumer quality association validates it. Three-year plan: Year 1 — enter via exclusive distributor in Tokyo and Osaka, €500K marketing investment to seed brand awareness, target €2M revenue to validate. Year 2 — identify JV partner among top 3 Japanese craft brewers, negotiate transition from distributor. Year 3 — JV operational, target €8M revenue, expand to 5 cities. Distributor exclusivity capped at 2 years with revenue triggers. Main risk: zero Asia operational experience — mitigate by hiring one Japan market specialist before launch."`,
+          watch: `⚠ "It depends" without a clear stance\n⚠ Plan without revenue targets or milestones`,
+          followups: ``
+        }
+      ]
+    }
+    {
+      title: 'SkinLab — Korean Beauty Brand in Germany',
+      setup: `Read aloud:
 
-Key prompt: "Should our client enter the US? If yes, how?"
+"Our client is SkinLab, a South Korean premium skincare brand with €120M in global revenue, strong presence in Asia and the US. They are evaluating entry into the German market — their first move into continental Europe. They have a €15M budget and 18 months before the Board expects to see results. Where would you like to start?"`,
+      strong_start: `Structure: Is Germany attractive? Can SkinLab win there? How should they enter given the €15M / 18-month constraint? Red flag: ignoring the budget and timeline constraint until prompted.`,
+      parts: [
+        {
+          title: 'Part 1 — Market Attractiveness',
+          prompt: `"Is Germany the right first European market for SkinLab?"
 
-Guide through:
-1. Market attractiveness (size, growth, competition)
-2. Client fit & positioning
-3. Entry mode (organic, JV, acquisition)
-4. Go-to-market strategy
+Share when asked:
+• German skincare market: €4.2B total, €680M premium segment, growing 9% YoY
+• K-beauty awareness in Germany: 34% of 18–35 women (vs 71% in UK, 58% in France)
+• German premium skincare dominated by: Eucerin, La Roche-Posay, Nivea Beiersdorf — all domestic/mass-premium
+• Pure K-beauty players in Germany: very limited — no dominant brand
+• German consumer profile: research-driven, ingredient-conscious, high willingness to pay for proven efficacy
+• Distribution: 60% premium skincare sold via pharmacy chains (DM, Rossmann) and Sephora (22 stores in Germany)`,
+          strong: `✔ €680M premium segment growing 9% — attractive size and momentum
+✔ Low K-beauty penetration (34%) = first mover opportunity, not a crowded market
+✔ Competitive gap: incumbents are all mass-premium European brands — no K-beauty specialist to displace
+✔ German consumer = ingredient-conscious = SkinLab's clinical positioning is a natural fit
+⚠ 34% awareness means 66% consumer education needed — higher marketing investment than a mature K-beauty market
+⚠ Pharmacy-dominated distribution (60%) = DM/Rossmann partnership is make-or-break`,
+          watch: `⚠ Not comparing Germany to UK/France as alternative entry points (lower awareness = higher cost, but also higher upside)
+⚠ Missing that DM/Rossmann control 60% of distribution — no route to market without them`,
+          followups: `"UK has 71% K-beauty awareness vs Germany's 34%. Why enter Germany first?"
+→ Tests whether they can argue for or against the client's choice. UK may actually be better first market — push them to commit to a view.`
+        },
+        {
+          title: 'Part 2 — Winning in Germany',
+          prompt: `"Can SkinLab actually win in Germany? What would it take?"
 
-Expected duration: 20–30 min` },
-    { title: 'EV Charging in Germany', body: `An energy company wants to enter the German EV charging network market.
+Share:
+• SkinLab hero products: Ceramide Repair Serum (€52), SPF Shield Fluid (€38), Barrier Cream (€45)
+• German average for equivalent products: €35–55 — SkinLab is at the top of the range
+• SkinLab's clinical data: 3 peer-reviewed studies on barrier repair
+• German influencer landscape: 'Skincare scientists' (dermatologist-affiliated) have 3–8M followers
+• SkinLab brand ambassador in Germany: none`,
+          strong: `✔ Pricing at top of range is defensible with clinical backing (3 peer-reviewed studies)
+✔ German ingredient-consciousness = clinical credibility is the right positioning axis
+✔ 'Skincare scientist' influencer category is the right channel — high credibility, ingredient-focused audience
+✔ Clinical data is a genuine differentiator vs competitors who lead on brand heritage
 
-Key prompt: "Is this an attractive market to enter, and how should we approach it?"
+To win:
+• Partner with 2–3 dermatologist-affiliated influencers as launch anchors
+• Secure DM partnership for distribution (without it, no scale)
+• Lead with Ceramide Repair Serum as hero product — most clinical evidence, strongest differentiation`,
+          watch: `⚠ Recommending mass influencer campaigns without flagging German consumer scepticism of unsubstantiated claims
+⚠ Not identifying that DM/Rossmann partnership is the critical path item`,
+          followups: `"DM wants 18-month exclusivity in exchange for shelf space. Do you accept?"
+→ 18 months is too long — accept 12 with option to extend if targets met. Exclusivity in one channel blocks Sephora and pharmacy independents.`
+        },
+        {
+          title: 'Part 3 — €15M Budget Allocation',
+          prompt: `"€15M, 18 months. How do you spend it?"
 
-Consider: infrastructure needs, regulation, competitive dynamics, B2B vs B2C.
+Curveball: "DM is interested but wants SkinLab to fund a €3M joint marketing campaign as condition of listing. Take it or leave it?"`,
+          strong: `Budget framework:
+• Distribution setup + DM onboarding: €2M (logistics, retailer terms, merchandising)
+• Product localisation (German labelling, regulatory, formulation declaration): €1.5M
+• Hero influencer campaign (3–5 dermatologist-affiliated): €3M
+• Performance/digital (targeted 18–35 women, ingredient interest): €3.5M
+• Brand sampling + pharmacy education (staff training at DM/Rossmann): €2M
+• Reserve / reactive: €3M
 
-Expected duration: 25–35 min` },
+On DM curveball:
+✔ €3M co-marketing is high but DM controls 60% of distribution — without them you have no route to scale
+✔ Negotiate: counter with €2M co-marketing, DM funds €1M — split 2:1
+✔ Condition payment on minimum shelf commitment (SKU count, placement, duration)
+✔ If DM won't negotiate — approach Rossmann first as competitive leverage`,
+          watch: `⚠ Rejecting DM demand without exploring negotiation
+⚠ Budget allocation without distribution as top priority`,
+          followups: `"18 months in — SkinLab has €8M revenue in Germany. The Board is disappointed (target was €12M). What happened and what do you do?"
+→ Diagnosis: lower awareness than expected (34% is real, not a floor), DM rollout slower than modelled, or hero product pricing is a barrier. Response: either extend with revised targets or pivot to UK where awareness is 71%.`
+        },
+        {
+          title: 'Final Recommendation',
+          prompt: `"Board presentation in 60 seconds."`,
+          strong: `Gold: "Enter Germany — the €680M premium segment is growing at 9%, K-beauty has low penetration (first mover advantage), and German ingredient-consciousness is a perfect fit for SkinLab's clinical positioning. To win: secure DM listing as top priority (60% of distribution), lead with Ceramide Repair Serum anchored on the 3 peer-reviewed studies, and build credibility through dermatologist-affiliated influencers before broader marketing. Budget: €2M distribution, €1.5M localisation, €6M marketing (split 3M influencer / 3M digital), €2M in-store sampling, €3M reserve. On DM's €3M co-marketing demand — counter at €2M and condition on shelf commitment. 18-month target: €10–12M revenue, 3% market share of premium segment. The risk is that 34% awareness requires significant education investment — if awareness conversion is slower than modelled, pivot to UK in Year 2 where the market is already warm."`,
+          watch: `⚠ Ignoring the 34% awareness gap as a cost driver
+⚠ No milestone or pivot condition`,
+          followups: ``
+        }
+      ]
+    },
   ],
+
   'Market Sizing': [
-    { title: 'Coffee Market in Paris', body: `Estimate the size of the coffee-to-go market in Paris.
+    {
+      title: 'EV Charging Stations in France',
+      setup: `Read aloud:\n\n"Your client is an energy company considering entering the French EV charging network market. Before anything else, they want to understand the size of the opportunity. Estimate the total number of public EV charging points needed in France by 2030, and the revenue opportunity that represents."`,
+      strong_start: `Listen for a structured approach — segmentation first, then build up. They should state assumptions clearly and check magnitudes at the end.`,
+      parts: [
+        {
+          title: 'Sizing Approach',
+          prompt: `Let them drive. Prompt with data only if they get stuck or ask.\n\nData to share if asked:\n• French population: 68M, ~28M households\n• Current car ownership: ~38M passenger cars\n• Current EV penetration: ~3% (≈ 1.1M EVs)\n• EU target: 30% EV penetration by 2030 → ≈ 11.4M EVs\n• Average charge frequency: 4x/week for daily commuters, 70% charge at home\n• Ratio benchmark: EU target is 1 public charger per 10 EVs\n• Average revenue per charge: €8–12\n• Average charger utilisation: 15–25% of capacity`,
+          strong: `Strong approach:\n1. Estimate 2030 EV fleet: 38M cars × 30% = 11.4M EVs\n2. Charging behaviour: 70% home charging → 30% need public infrastructure regularly\n3. Public charging demand: 11.4M EVs × 30% × 4 charges/week public = 13.7M public charges/week\n4. Charger capacity: at 25% utilisation, 1 charger handles ~168 sessions/week → 13.7M ÷ 168 ≈ 82,000 chargers\n5. Sanity check: EU 1:10 ratio → 11.4M EVs ÷ 10 = 1.14M chargers — but many are private/semi-public, public subset is 10–15% → 114,000–170,000 ✓ broadly consistent\n6. Revenue: 13.7M charges/week × €10 avg × 52 weeks = €7.1B/year market`,
+          watch: `⚠ Not segmenting home vs public charging\n⚠ Missing utilisation rate in charger count calculation\n⚠ No sanity check\n⚠ Not flagging the difference between chargers needed vs chargers deployed (timing)`,
+          followups: `"You estimated 100K–170K chargers. France currently has 120,000. Does that mean the market is saturated?"\n→ No — current EVs are 1.1M, target is 11.4M. Charger network must scale 10x with the fleet.\n"What's the revenue per charger per year?"\n→ €7.1B ÷ 140K chargers ≈ €50K/charger/year — useful unit economics for your client`
+        }
+      ]
+    }
+    {
+      title: 'Private Tutoring Market in France',
+      setup: `Read aloud:
 
-Key prompt: "Walk me through how you would size this market."
+"Your client is a private equity fund evaluating an investment in the French private tutoring industry. Before anything else, they need to understand the size of the market. Estimate the total annual spend on private tutoring in France, and the addressable online tutoring segment."`,
+      strong_start: `Should structure clearly before calculating. Two segments: in-person tutoring and online tutoring. Approach: student population → penetration rate → average spend → total. Listen for assumption clarity and sanity checks.`,
+      parts: [
+        {
+          title: 'Sizing Approach',
+          prompt: `Let them drive. Share data only if they ask or get stuck.
 
-Expect a structured approach:
-• Population segmentation
-• Consumption frequency
-• Average spend
-• Sanity check
+Data available if asked:
+• France population: 68M. Students in primary/secondary/university: ~14M
+• Private tutoring prevalence: ~28% of secondary students (collège + lycée), ~8% primary, ~15% university students use paid tutoring
+• Secondary students (collège + lycée): ~5.4M
+• Primary students: ~4.1M
+• University students: ~2.8M (relevant for tutoring, not all 3M)
+• Average annual spend on tutoring:
+  - Secondary: €1,200/year (avg 2 sessions/week, 30 weeks)
+  - Primary: €700/year
+  - University: €900/year
+• Online tutoring as % of total: ~22% and growing`,
+          strong: `Strong approach:
+1. Segment by education level — different penetration and spend
+2. Secondary: 5.4M × 28% = 1.51M students × €1,200 = €1.81B
+3. Primary: 4.1M × 8% = 328K students × €700 = €230M
+4. University: 2.8M × 15% = 420K students × €900 = €378M
+5. Total: ~€2.4B
+6. Online addressable: €2.4B × 22% = €530M
+7. Sanity check: €2.4B ÷ 68M population = ~€35/capita/year on tutoring — compare to UK (~€45) and Germany (~€30) ✓ plausible
 
-Tip: Push the candidate to be precise about assumptions and label them clearly.
-
-Expected duration: 15–20 min` },
-    { title: 'Online Tutoring France', body: `Estimate the total addressable market for online tutoring in France.
-
-Key prompt: "How large is this market and how fast is it growing?"
-
-Guide: student population, penetration rate, avg spend, split by level (primary/secondary/university).
-
-Expected duration: 15–20 min` },
+PE framing: growing market (online +30% YoY), fragmented (top 5 players <20% share), platform economics = attractive investment thesis`,
+          watch: `⚠ Not segmenting by level — using one average across all students misses the spend differential
+⚠ No sanity check
+⚠ Not flagging the online segment as the investable part (vs fragmented offline)`,
+          followups: `"The PE fund's target company has €18M revenue. What market share does that represent?"
+→ €18M ÷ €530M online TAM = 3.4% — small share in a fragmented market = significant growth runway
+"What would drive the online penetration rate from 22% to 35%?"
+→ Post-COVID habit shift, AI-powered personalisation, lower price point vs in-person, geographic access (rural France)`
+        }
+      ]
+    },
   ],
+
   'Operations': [
-    { title: 'Supply Chain Disruption', body: `A consumer electronics manufacturer is facing 3-week delivery delays due to supply chain issues.
+    {
+      title: 'MedSupply — Hospital Procurement Crisis',
+      setup: `Read aloud:\n\n"Our client is MedSupply, a medical device distributor serving 180 hospitals across France. Over the past 8 months, on-time delivery has dropped from 96% to 71%. Three major hospital clients have issued formal warnings and one has begun evaluating alternatives. The CEO wants to know what's broken and how to fix it — fast. Where would you like to start?"`,
+      strong_start: `Should diagnose before solving. Red flag: jumping to 'hire more staff' or 'invest in technology' before understanding root cause.`,
+      parts: [
+        {
+          title: 'Part 1 — Root Cause Diagnosis',
+          prompt: `"Walk me through how you'd diagnose why on-time delivery dropped 25 points in 8 months."\n\nShare when asked:\n• New ERP system launched 9 months ago — went live 1 month before problems started\n• Order processing time: up from 2.1 hours to 6.8 hours average\n• Warehouse picking errors: up from 0.8% to 3.1%\n• Supplier lead times: unchanged\n• Headcount: unchanged\n• Customer order volume: up 12% YoY`,
+          strong: `Root cause chain:\n1. ERP go-live (9 months ago) preceded symptom onset by 1 month — strong correlation\n2. Order processing 3x slower — ERP likely introduced manual workarounds or workflow issues\n3. Picking error rate 4x higher — ERP probably disrupted warehouse workflow or barcode scanning integration\n4. Volume up 12% on a system that's 3x slower = capacity crunch multiplied\n5. Not a supplier problem, not a headcount problem — it's an ERP implementation problem`,
+          watch: `⚠ Blaming suppliers without checking lead times\n⚠ Recommending headcount before diagnosing ERP root cause\n⚠ Missing that volume increase amplified the ERP problem`,
+          followups: `"The ERP vendor says the system is working as designed. What do you do with that?"\n→ 'Working as designed' doesn't mean 'fit for MedSupply's workflow' — investigate gap between design assumptions and actual operation`
+        },
+        {
+          title: 'Part 2 — Immediate Fix',
+          prompt: `"You've confirmed the ERP is the core problem. Full fix will take 6 months. But MedSupply is at risk of losing clients in 6 weeks. What do you do in the next 4 weeks?"\n\nCurveball: "The ERP vendor says any workarounds will void the support contract."`,
+          strong: `4-week triage:\n✔ Manual override for top 20 hospital clients — dedicated team processes their orders outside broken ERP workflow\n✔ Daily delivery status calls to the 3 clients who issued warnings — relationship management buys time\n✔ Temporary staff augmentation at the warehouse to absorb picking backlog\n✔ Identify the 3–5 specific ERP workflow steps causing 80% of delays — surgical fix vs full rollback\n\nOn vendor curveball:\n✔ Escalate to contract — 'working as designed' while client loses 25 points of OTD is a breach of spirit if not letter\n✔ Document financial impact — lost contracts = leverage in vendor negotiation\n✔ Parallel: evaluate whether partial rollback (hybrid old/new system) is feasible`,
+          watch: `⚠ Full ERP rollback as first recommendation — high risk, high cost, takes as long as fixing it\n⚠ Not prioritising the 3 warning hospitals as highest-urgency accounts`,
+          followups: `"The warehouse team says they've 'gotten used to the new system' and don't want to go back. Does that change anything?"\n→ Team adaptation is real data — suggests the issue may be specific workflows, not wholesale ERP failure`
+        },
+        {
+          title: 'Final Recommendation',
+          prompt: `"CEO presentation in 60 seconds. What happened, what do you do, and when does it get fixed?"`,
+          strong: `Gold: "MedSupply's 25-point OTD drop traces directly to the ERP implementation 9 months ago — order processing is 3x slower, picking errors are 4x higher, and a 12% volume increase amplified both. This is not a supplier or headcount problem. 30-day plan: manual processing track for top 20 clients, daily outreach to the 3 warning hospitals, temp staff augmentation for warehouse backlog, and surgical identification of the 3 ERP workflows causing 80% of delay. 90-day plan: ERP workflow remediation with vendor (with financial impact as leverage), picking integration fix, and a quality gate before each order batch. OTD back to 90%+ in 90 days, 96%+ in 6 months. The warning clients need to hear this plan directly from the CEO this week."`,
+          watch: `⚠ Vague timelines\n⚠ Not addressing the client relationship risk explicitly`,
+          followups: ``
+        }
+      ]
+    }
+    {
+      title: 'FreshBox — Food Delivery Fulfilment Crisis',
+      setup: `Read aloud:
 
-Key prompt: "Our client is losing customers. Diagnose the problem and recommend fixes."
+"Our client is FreshBox, a French meal-kit subscription company with 380,000 active subscribers and €210M in revenue. Over the past 5 months, customer complaints about incorrect or incomplete boxes have risen from 1.2% to 6.8% of orders. Churn has increased from 4.2% to 7.1% monthly. The CEO has 90 days to fix this before the Board reviews the business. Where would you like to start?"`,
+      strong_start: `Should diagnose before solving. Listen for structured diagnostic approach: when did it start, what changed, where in the fulfilment chain is the error. Red flag: recommending 'better quality control' without identifying root cause.`,
+      parts: [
+        {
+          title: 'Part 1 — Root Cause',
+          prompt: `"Walk me through how you'd diagnose the error rate increase."
 
-Areas: supplier concentration, inventory strategy, logistics, demand forecasting.
+Share when asked:
+• Error rate started rising 5.5 months ago
+• 5.5 months ago: FreshBox opened a 3rd fulfilment centre (Paris Nord) — previously operated 2
+• Error breakdown: 71% of complaints from Paris Nord subscribers, 29% split between the 2 legacy centres
+• Error types: wrong item picked (44%), missing item (38%), damaged item (18%)
+• Paris Nord: 40% of staff are temps from a new agency, hired for the expansion
+• Legacy centres: 8% temps
+• Paris Nord pick rate: 94 units/hour vs 118 at legacy centres`,
+          strong: `Root cause chain:
+1. Timing: 5.5 months ago = Paris Nord opening — direct correlation
+2. Geography: 71% of errors from Paris Nord (vs 29% from the other two combined) — not systemic, it's Paris Nord
+3. Error types: wrong item (44%) + missing item (38%) = picking process failure, not packaging or supplier issue
+4. Staff composition: 40% temps at Paris Nord vs 8% legacy — undertrained workforce
+5. Pick rate: 94 vs 118 units/hour = 20% slower AND higher error rate — speed-accuracy tradeoff in wrong direction
 
-Expected duration: 20–25 min` },
-    { title: 'Factory Productivity', body: `A car parts manufacturer has productivity 20% below industry benchmark.
+Conclusion: Paris Nord has a workforce quality and training failure, not a process or technology problem`,
+          watch: `⚠ Blaming the entire fulfilment network when the problem is 71% localised to Paris Nord
+⚠ Recommending technology investment before addressing the human/training root cause`,
+          followups: `"The Paris Nord site manager says his team is 'doing their best with the equipment they have.' How do you investigate further?"
+→ Compare equipment spec between sites — if equipment is identical, it's workforce, not equipment`
+        },
+        {
+          title: 'Part 2 — 90-Day Fix',
+          prompt: `"90 days, CEO mandate. What do you do?"
 
-Key prompt: "What's driving the gap and how do we close it?"
+Curveball: "The staffing agency has a 3-month notice clause — you cannot rapidly reduce temp headcount at Paris Nord without paying a €400K penalty."`,
+          strong: `30-day triage:
+✔ Immediately pair each temp worker with a permanent 'buddy' from legacy centres — direct supervision during picking
+✔ Reduce Paris Nord throughput by 15% — reduce speed pressure until accuracy improves
+✔ Implement double-scan check on 100% of Paris Nord orders for 30 days — catches errors before dispatch
+✔ Direct outreach to affected subscribers — proactive refund/credit before they churn
 
-Focus: capacity utilization, workforce, process inefficiencies, capex needs.
+Days 30–90:
+✔ Structured training programme — Paris Nord staff to certified pick accuracy standard used at legacy sites
+✔ Gradual throughput restoration tied to error rate milestones (<2% before returning to full speed)
+✔ Real-time error dashboard by picker ID — identify specific individuals with high error rates for additional coaching
 
-Expected duration: 20–25 min` },
+On agency curveball:
+✔ €400K penalty is likely worth paying if errors cost more in churn — model it
+✔ Churn increase: +2.9pts × 380K subscribers = 11,000 additional churners/month × avg LTV ~€400 = €4.4M/month in lost LTV
+✔ €400K to exit underperforming agency is cheap vs €4.4M/month churn cost`,
+          watch: `⚠ Recommending agency exit without modelling the penalty vs churn cost
+⚠ Not addressing affected subscribers proactively (they'll churn before the fix lands)`,
+          followups: `"Double-scan on 100% of orders will slow throughput by 20%. The CEO is worried about delivery SLAs. How do you handle the tradeoff?"
+→ Accuracy failure causes churn. Late delivery causes complaints but not 7% monthly churn. Prioritise accuracy — negotiate temporary SLA extension with subscribers.`
+        },
+        {
+          title: 'Final Recommendation',
+          prompt: `"CEO presentation in 60 seconds."`,
+          strong: `Gold: "FreshBox's error rate increase is 71% concentrated at Paris Nord, which opened 5.5 months ago with 40% temp workers and a 20% lower pick rate than legacy sites. This is a workforce training failure, not a systemic process failure. 90-day plan in three phases: first 30 days — pair every temp with a permanent buddy, implement 100% double-scan on Paris Nord orders, reduce throughput by 15% to relieve speed pressure, and proactively credit all affected subscribers before they churn. Days 30–60 — structured certification training to legacy-centre standards, real-time per-picker error tracking. Days 60–90 — graduated throughput restoration tied to error rate milestones below 2%. On the agency contract: model the €400K penalty against €4.4M/month in churn cost from the current error rate — exiting the agency is almost certainly the right financial call. Churn should return to baseline by month 3 if the 30-day triage is executed fast."`,
+          watch: `⚠ 90-day plan without phasing or milestones
+⚠ Not quantifying the churn cost to justify the agency exit decision`,
+          followups: ``
+        }
+      ]
+    },
   ],
+
   'Pricing': [
-    { title: 'SaaS Repricing', body: `A B2B SaaS company is considering raising prices by 30% for its core product.
+    {
+      title: 'CloudCore — B2B SaaS Repricing',
+      setup: `Read aloud:\n\n"Our client is CloudCore, a B2B project management SaaS with €38M ARR, 2,200 clients, and a net revenue retention of 108%. They've had the same pricing for 3 years. The CEO believes they're significantly underpriced versus the value they deliver. She wants to raise prices by 35% for existing customers. Our job is to advise whether to do it, and if so, how. Where would you like to start?"`,
+      strong_start: `Should think about: willingness to pay, competitive position, customer segmentation, churn risk, and sequencing. Red flag: saying yes or no before asking about competitive pricing and customer segments.`,
+      parts: [
+        {
+          title: 'Part 1 — Value Assessment',
+          prompt: `"How do you assess whether CloudCore is actually underpriced?"\n\nShare when asked:\n• CloudCore's pricing: €480/seat/year\n• Nearest competitor (ProjectPro): €650/seat/year\n• Second competitor (TaskFlow): €420/seat/year\n• CloudCore NPS: 71 (vs industry average 42)\n• Customer survey: 68% say CloudCore is 'significantly better' than alternatives they've tried\n• Average customer ROI study: €4.2 in productivity gains per €1 spent on CloudCore`,
+          strong: `✔ Pricing gap: €170 below ProjectPro (35% below market leader) — significant headroom\n✔ Willingness to pay signals: 68% see clear superiority, NPS 71 vs 42 = strong value perception\n✔ ROI ratio: 4.2x ROI means customers capture massive surplus — room to share more with CloudCore\n✔ NRR 108%: customers are already expanding — they're not price-sensitive, they're value-buyers\n\nConclusion: underpricing evidence is strong across 3 independent signals`,
+          watch: `⚠ Citing only one data point (competitor pricing) without triangulating\n⚠ Not connecting NPS/NRR to pricing power`,
+          followups: `"TaskFlow is €60 cheaper. Does that constrain how much we can raise prices?"\n→ TaskFlow is the low-cost option — CloudCore's NPS suggests it doesn't compete on price, it competes on value`
+        },
+        {
+          title: 'Part 2 — Churn Risk',
+          prompt: `"The CFO is worried a 35% increase will trigger mass churn. How do you model the risk?"\n\nShare:\n• Current annual churn: 7%\n• Average contract length: 2.1 years\n• Customer segments:\n  - Enterprise (>500 seats): 18% of clients, 61% of ARR\n  - Mid-market (50–500 seats): 44% of clients, 31% of ARR\n  - SMB (<50 seats): 38% of clients, 8% of ARR`,
+          strong: `Segmented analysis:\nEnterprise (61% of ARR): long contracts, high switching cost, high ROI — least price sensitive. Can absorb 35% increase.\nMid-market (31% of ARR): moderate switching cost — take 20–25% increase, grandfather existing contracts for 12 months.\nSMB (8% of ARR): most price sensitive, highest churn risk — protect with minimal increase (10–15%) or freeze. Not worth the ARR risk.\n\nBreak-even analysis:\nCurrent ARR: €38M. 35% increase across all = €51.3M potential ARR.\nIf 15% of clients churn (worst case, mostly SMB): €38M × 15% = -€5.7M. Net new ARR = €13.3M - €5.7M = +€7.6M.\nEven a bad scenario is positive — the math is favourable if segmented correctly.`,
+          watch: `⚠ Flat 35% across all segments without segmenting risk\n⚠ Not building a break-even churn model`,
+          followups: `"The CFO says 'even 5% more churn isn't worth it.' How do you respond?"\n→ Show the math: 5% churn on €38M = €1.9M ARR lost. Even a 15% price increase generates €5.7M new ARR on retained base. The churn risk is priced in.`
+        },
+        {
+          title: 'Part 3 — Implementation',
+          prompt: `"How do you actually implement the price increase without breaking customer relationships?"\n\nCurveball: "Three of CloudCore's largest enterprise clients (together worth €8M ARR) have multi-year contracts with price-lock clauses. The contracts expire in 14 months."`,
+          strong: `Implementation approach:\n✔ Segment by contract type and renewal date — sequence by lowest risk first\n✔ Announce with 90-day notice — not 30, not 180\n✔ Frame as 'value-based pricing update' with new ROI data — not 'price increase'\n✔ Offer 1-year price lock for clients who commit early to multi-year renewal\n✔ CSM-led conversations for top 50 clients before announcement goes wide\n\nOn contract curveball:\n✔ Price-lock contracts are untouchable for 14 months — do not attempt to renegotiate, legal risk\n✔ Use 14 months to deepen relationship and expand usage — drive NRR up further\n✔ Begin renewal conversation at month 8 — frame new pricing as tied to new features being added\n✔ €8M ARR at risk means the sequencing of the broader rollout should not depend on these 3 clients`,
+          watch: `⚠ Trying to break price-lock contracts — legal and relationship risk\n⚠ Mass announcement before individual outreach to top clients`,
+          followups: `"A competitor immediately drops their price to €400/seat in response. What do you do?"\n→ Don't react on price — CloudCore's NPS and NRR prove customers don't buy on price. Hold the line, accelerate value communication.`
+        },
+        {
+          title: 'Final Recommendation',
+          prompt: `"Board in 60 seconds. Do we raise prices 35%?"`,
+          strong: `Gold: "Yes — raise prices, but not uniformly. The evidence for underpricing is strong: we're €170 below market leader, customers report 4.2x ROI, NPS of 71 vs industry 42, and NRR of 108% all signal pricing power. Recommended approach: Enterprise — 30–35% increase effective at next renewal, CSM-led conversations starting now. Mid-market — 20–25%, grandfathered for 12 months for existing contracts. SMB — 10–15%, protect this segment from churn risk given they're only 8% of ARR. Three price-locked enterprise accounts excluded for 14 months — focus on deepening usage for renewal leverage. Implementation: 90-day notice, framed as value-based pricing update with ROI data, early-commit multi-year lock-in offer. Risk: break-even churn analysis shows even 15% churn scenario generates net +€7.6M ARR. The risk of not raising prices — continuing to leave €13M+ on the table annually — is greater than the risk of doing it."`,
+          watch: `⚠ Binary yes/no without segmentation\n⚠ Ignoring implementation sequencing`,
+          followups: ``
+        }
+      ]
+    }
+    {
+      title: 'AquaPure — Premium Water Brand Launch Pricing',
+      setup: `Read aloud:
 
-Key prompt: "Should they do it, and how?"
+"Our client is AquaPure, a French startup launching a premium still water brand — spring-sourced, in glass bottles, targeting the high-end restaurant and hotel channel. They will launch in 3 months. They haven't set a price yet. Their unit economics require a minimum price of €3.20 per 75cl bottle to break even at volume. The founder wants to know what price to charge and how to think about pricing strategy for the launch. Where would you like to start?"`,
+      strong_start: `Should think about: cost floor, competitive benchmarking, willingness to pay in target channel, positioning strategy. Red flag: anchoring immediately on the €3.20 cost floor without looking at what the market can bear.`,
+      parts: [
+        {
+          title: 'Part 1 — Competitive Context',
+          prompt: `"How do you benchmark AquaPure's pricing?"
 
-Guide through: value-based pricing, elasticity, competitive positioning, migration risk, phasing.
+Share when asked:
+• Restaurant channel pricing (per 75cl bottle, restaurant menu price):
+  - Evian: €4–5
+  - Perrier: €5–7
+  - Badoit: €4–6
+  - San Pellegrino (sparkling): €5–8
+  - Acqua Panna (premium still, owned by Nestlé): €6–9
+  - Rare/luxury waters (Voss, Nevas): €9–14
+• Restaurant gross margin on water: typically 70–75% — they charge 3–4x wholesale
+• AquaPure's target channel: 3-star Michelin and 5-star hotels initially
+• AquaPure unique attributes: glass bottle, local source (Vosges), certified carbon-neutral`,
+          strong: `✔ Relevant benchmark is Acqua Panna (premium still, glass, European source) at €6–9 restaurant menu
+✔ Cost floor is €3.20 — at 70% restaurant margin, wholesale = menu price × 30% → Acqua Panna at €7 menu = ~€2.10 wholesale (Nestlé's scale advantage)
+✔ AquaPure at €3.20 breakeven + reasonable margin → wholesale €3.80–4.20 → menu €12.60–14.00 range
+✔ At 3-star Michelin channel, menu price of €12–14 per bottle is entirely defensible — this is a prestige context
+✔ Carbon-neutral + local sourcing = differentiation vs Acqua Panna (Italian, large-scale)`,
+          watch: `⚠ Anchoring on Evian/Perrier (mass premium) rather than the correct premium still segment
+⚠ Not working through the wholesale-to-menu price calculation
+⚠ Missing that in 3-star Michelin restaurants, water at €12–14 is expected, not shocking`,
+          followups: `"The founder is nervous about pricing above Acqua Panna. How do you respond?"
+→ Acqua Panna is the floor, not the ceiling. AquaPure has differentiated attributes (local, carbon-neutral, glass) and is targeting the most price-insensitive channel in the market.`
+        },
+        {
+          title: 'Part 2 — Pricing Strategy',
+          prompt: `"What pricing strategy should AquaPure adopt — penetration, parity, or premium?"
 
-Expected duration: 20–25 min` },
-    { title: 'Premium Product Launch', body: `A food company is launching a premium organic line at 2x the price of its standard range.
+Curveball: "A major hotel group (50 properties) says they'll list AquaPure across all properties if AquaPure drops the wholesale price to €2.80 — below breakeven. The volume would be 180,000 bottles/year."`,
+          strong: `Penetration pricing: wrong — AquaPure is a prestige product in a prestige channel. Discounting from launch permanently signals low quality in a market where price = quality signal.
 
-Key prompt: "What pricing strategy should they adopt?"
+Parity pricing (match Acqua Panna ~€3.80 wholesale): safe but leaves value on table and cedes the premium positioning.
 
-Consider: willingness to pay, brand perception, channel strategy, cannibalization.
+Premium pricing (€4.20–4.80 wholesale → €14–16 menu): right for brand building, defensible with differentiation, consistent with 3-star Michelin context.
 
-Expected duration: 20–25 min` },
+Recommendation: launch at €4.50 wholesale. Signals premium intent, allows restaurant to price at €13–15, and creates margin for promotional investment.
+
+On hotel group curveball:
+✔ Below breakeven at scale is a trap — 180K bottles at -€0.40 = -€72K loss AND anchors price perception downward
+✔ Counter: offer €3.10 wholesale (above breakeven) with a 12-month partnership agreement and logo placement on wine list
+✔ If hotel group insists on €2.80 — decline. Volume at a loss with a partner who doesn't value your positioning is the wrong foundation`,
+          watch: `⚠ Accepting below-breakeven to secure volume — fatal mistake for a brand launch
+⚠ Not recognising that a Michelin restaurant listing is worth more than a hotel chain listing for brand perception`,
+          followups: `"AquaPure has no brand recognition. Why would a sommelier at a 2-star Michelin choose it over Acqua Panna?"
+→ The sommelier's job is to curate interesting, story-driven choices. Local French source, carbon-neutral, glass bottle, independent founder — that's a story. Acqua Panna has no story.`
+        },
+        {
+          title: 'Part 3 — Pricing Evolution',
+          prompt: `"How should AquaPure think about pricing as they scale beyond the launch channel?"
+
+Share: Year 2 plan includes expansion to brasseries and food retail.`,
+          strong: `Channel pricing architecture:
+• 3-star Michelin / 5-star hotel (launch): €4.50 wholesale, €13–15 menu — flagship prestige channel, price anchor
+• Brasseries / casual fine dining (Year 2): €3.60–3.90 wholesale — maintain premium vs Evian, below launch channel
+• Food retail (Year 2+): €5.50–7.00 retail price (glass bottle premium) — aspirational consumer purchase
+
+Key principle: never let retail price undercut restaurant menu price — destroys the restaurant channel's margin
+
+Pricing governance: hold the restaurant channel price regardless of volume pressure. The brand is built in Michelin restaurants, not in supermarkets.`,
+          watch: `⚠ Uniform pricing across channels — destroys channel economics and brand positioning
+⚠ Retail price above restaurant menu price — makes restaurant listing look expensive`,
+          followups: ``
+        },
+        {
+          title: 'Final Recommendation',
+          prompt: `"Founder presentation in 60 seconds. What price, what strategy?"`,
+          strong: `Gold: "Launch at €4.50 wholesale — menu price of €13–15 in the 3-star Michelin channel. This positions AquaPure above Acqua Panna, consistent with the differentiation story: local French source, carbon-neutral, glass bottle. The channel price-insensitivity is real — in this context, water at €14 is expected. On the hotel group offer at €2.80: decline. Below-breakeven volume with a partner who doesn't value the positioning damages both the P&L and the brand in its first year. Counter at €3.10 with a partnership agreement. Year 2 channel architecture: brasseries at €3.60–3.90, retail at €5.50–7.00 — architected so retail never undercuts the restaurant channel. The brand is built in Michelin restaurants and then harvested in retail. Never do it the other way around."`,
+          watch: `⚠ Accepting the hotel deal
+⚠ Not building the channel architecture logic`,
+          followups: ``
+        }
+      ]
+    },
   ],
+
   'Growth Strategy': [
-    { title: 'EdTech Scaling', body: `An EdTech startup has 50K users in France and wants to 10x in 3 years.
+    {
+      title: 'Lumio — EdTech Scaling',
+      setup: `Read aloud:\n\n"Our client is Lumio, a French EdTech startup offering AI-powered tutoring for high school students preparing for the Baccalauréat. They have 85,000 active subscribers, €12M ARR, growing at 55% YoY, and they've just raised €20M Series B. The CEO wants to 10x ARR to €120M in 4 years. She wants to know whether that's achievable, and if so, what the strategy is. Where would you like to start?"`,
+      strong_start: `Should assess the ambition first (is 10x in 4 years realistic?), then build a strategy. Red flag: building a strategy without pressure-testing the target first.`,
+      parts: [
+        {
+          title: 'Part 1 — Target Pressure-Test',
+          prompt: `"Before we build a strategy — is 10x in 4 years achievable?"\n\nShare:\n• French Bac prep market: €480M TAM\n• Lumio current market share: ~2.5%\n• To reach €120M ARR: needs ~25% of French Bac prep market\n• French Bac cohort: ~750,000 students/year\n• Current Lumio conversion: 11.3% of students who trial → subscribe`,
+          strong: `Framework for assessing achievability:\n1. Market cap: 25% of a €480M market is aggressive but not impossible — Duolingo holds 40%+ in language learning\n2. Growth math: to reach €120M from €12M at 55% current growth takes ~5.6 years. To do it in 4 requires acceleration to ~77% CAGR — this requires a step-change, not just more of the same\n3. Conclusion: achievable in France alone if and only if they accelerate growth rate — likely requires new growth vectors (adjacent subjects, B2B schools, geographic expansion)\n→ "The target is possible but not on current trajectory — she needs a strategy that adds 2–3 new growth vectors"`,
+          watch: `⚠ Accepting the target without stress-testing the math\n⚠ Not identifying that current trajectory undershoots`,
+          followups: `"The CEO says 'we just need to do more of what's working.' Is she right?"\n→ At 55% growth: Year 4 ARR = €12M × (1.55)^4 = €87M. Not €120M. She needs new vectors.`
+        },
+        {
+          title: 'Part 2 — Growth Vectors',
+          prompt: `"What are the 2–3 growth vectors that could close the gap?"\n\nShare when asked:\n• B2B: 3,000 French high schools, avg budget €8–15K/year for digital tools\n• Adjacent subjects: Lumio currently covers Maths and French only. Physics, History, Languages are top student requests\n• Geographic: Spanish Selectividad (700K students) and German Abitur (450K students) have no dominant EdTech player\n• Lumio's AI engine: language-agnostic, curriculum adaptation takes ~3 months per subject/country`,
+          strong: `Vector 1 — B2B Schools:\n• 3,000 schools × €10K avg = €30M TAM in France alone\n• B2B = annual contracts, high NRR, low CAC vs B2C\n• Credibility signal for B2C — 'used by your school'\nVector 2 — Adjacent Subjects:\n• Maths + French → +4 subjects = 3x the addressable student need per user\n• Increases ARPU without increasing CAC — highest ROI lever\nVector 3 — Geographic Expansion:\n• Spain and Germany = 1.15M additional students, no dominant player\n• AI engine is language-agnostic — 3-month curriculum adaptation is low cost\n\nPrioritisation: Subject expansion first (fastest, highest margin), B2B second (€30M near-term), geography third (longer lead time but biggest TAM unlock)`,
+          watch: `⚠ Geography as first move — takes longest, highest distraction risk for a startup\n⚠ Not quantifying each vector's contribution to the €120M target`,
+          followups: `"The €20M Series B is earmarked for growth. How do you allocate it across these vectors?"\n→ Rough allocation: €8M product/AI (subject expansion + geo curriculum), €7M B2B sales team + partnerships, €5M brand/B2C performance marketing`
+        },
+        {
+          title: 'Part 3 — Execution Risks',
+          prompt: `"What could kill this strategy?"\n\nCurveball: "Google and Microsoft have both announced AI tutoring products for European markets, launching in 12 months."`,
+          strong: `Execution risks:\n• B2B sales is a different motion than B2C — needs different team, longer cycles\n• Subject expansion dilutes product focus — risk of doing everything at average quality\n• Geographic expansion before French market is fully captured = distraction risk\n\nOn Big Tech curveball:\n✔ Google/Microsoft have distribution but no curriculum depth or exam-specific UX\n✔ Lumio's moat: proprietary performance data on 85K students, Bac-specific question bank, teacher relationships if B2B executes\n✔ Response: accelerate B2B school deals — institutional relationships are hard for Big Tech to replicate fast\n✔ Don't compete on AI horsepower — compete on exam-specific outcomes data`,
+          watch: `⚠ "Google will destroy us" without identifying Lumio's defensible advantages\n⚠ Recommending to slow down in response to competition — opposite of right move`,
+          followups: `"Should Lumio consider selling to a large EdTech player now, before Big Tech enters?"\n→ Tests whether they can hold strategic conviction under pressure. Answer: €20M just raised, 55% growth, €120M target — it's too early to sell. Demonstrate the growth story first.`
+        },
+        {
+          title: 'Final Recommendation',
+          prompt: `"CEO presentation in 60 seconds. Is €120M in 4 years achievable, and what's the plan?"`,
+          strong: `Gold: "€120M in 4 years is achievable — but not on current trajectory. At 55% CAGR Lumio reaches €87M, not €120M. The gap requires three growth vectors executed in sequence. First 18 months: expand to 6 subjects — this is the highest-margin lever, increases ARPU without touching CAC, fully funded by existing team. Months 12–30: launch B2B school channel — 3,000 French schools × €10K = €30M TAM, and institutional relationships are our best defense against Big Tech. Year 3–4: Spain and Germany — AI engine is already language-agnostic, 3-month curriculum adaptation per market. Capital allocation from the €20M: €8M product, €7M B2B sales build, €5M brand. Biggest risk: Big Tech entry in 12 months — our response is to accelerate institutional lock-in via schools before they arrive. €120M by Year 4 requires hitting all three vectors. Miss B2B and we're at €95M. Miss geo and we're at €110M. All three: €120M+."`,
+          watch: `⚠ Not quantifying each vector's ARR contribution\n⚠ Ignoring the Big Tech threat in the final recommendation`,
+          followups: ``
+        }
+      ]
+    }
+    {
+      title: 'Novatek — B2B SaaS International Expansion',
+      setup: `Read aloud:
 
-Key prompt: "How should they grow?"
+"Our client is Novatek, a French B2B SaaS company providing compliance management software for financial services firms. They have €22M ARR, 340 clients in France, 92% net revenue retention, and have been profitable for 2 years. They've just raised €30M Series C with a mandate to expand internationally. The CEO wants to reach €100M ARR in 5 years. She wants to know which market to enter first and how. Where would you like to start?"`,
+      strong_start: `Should structure around: market selection criteria, then prioritise, then entry strategy. Red flag: immediately recommending UK/US without a framework for market selection.`,
+      parts: [
+        {
+          title: 'Part 1 — Market Selection',
+          prompt: `"How would you decide which market to enter first?"
 
-Guide: organic vs inorganic, geo expansion, product expansion, monetization, partnerships.
+Share when asked:
+• Novatek's product: MiFID II compliance automation (EU regulation) + increasingly modular for non-EU rules
+• UK: left EU MiFID II perimeter post-Brexit, has its own FCA regime — partial product overlap, requires adaptation
+• Germany: MiFID II jurisdiction, similar regulatory framework to France — near-zero product adaptation needed
+• US: SEC/FINRA regime — entirely different regulatory framework, 18–24 months product rebuild estimated
+• Novatek sales motion: 6-month average sales cycle, relationship-driven, requires local compliance expertise
+• Novatek's existing French clients: 4 have German subsidiaries already using the product informally`,
+          strong: `Market selection framework:
+1. Regulatory fit: Germany = MiFID II, near-zero adaptation. UK = partial, 3–6 month adaptation. US = full rebuild, 18–24 months. Eliminate US for Year 1.
+2. Market size: Germany financial services compliance software: ~€180M TAM. UK: ~€220M. US: ~€1.2B.
+3. Speed to revenue: Germany wins — existing clients with German subsidiaries = warm pipeline, zero product rebuild, same regulatory language.
+4. Strategic option value: Germany validates pan-EU expansion (same regulatory framework as Belgium, Netherlands, Austria — dominoes fall easily). UK is a different regulatory bet.
 
-Expected duration: 25–30 min` },
-    { title: 'D2C Brand Expansion', body: `A D2C beauty brand has strong online presence and wants to expand into retail.
+Recommendation: Germany first, UK second (18 months later), US deferred.`,
+          watch: `⚠ US as first market — 18-month product rebuild burns the €30M before generating revenue
+⚠ Not using existing client German subsidiaries as the beachhead
+⚠ Choosing UK purely on market size without factoring regulatory adaptation cost`,
+          followups: `"The Board wants to enter the UK because the TAM is larger. How do you respond?"
+→ Larger TAM doesn't matter if time to revenue is 2x longer. Germany delivers €5–8M ARR in Year 1 using the existing product. UK won't generate meaningful ARR until Year 2 at the earliest.`
+        },
+        {
+          title: 'Part 2 — Germany Entry Strategy',
+          prompt: `"Germany it is. How do you enter?"
 
-Key prompt: "Should they go into physical retail and how?"
+Share:
+• German B2B SaaS distribution: 70% sold through local sales teams or trusted local partners — remote-first model rarely works
+• Top German compliance software competitor: ComplianceOS (German, €45M ARR, 680 clients, weak on MiFID automation)
+• Novatek product vs ComplianceOS: Novatek 40% faster at MiFID reporting, ComplianceOS has broader non-MiFID features
+• 3 options on the table: hire local sales team, partner with a German consulting firm, or acquire ComplianceOS`,
+          strong: `Option analysis:
+Hire local team: 6–9 months to hire, 12 months to ramp — €2–3M cost before first German ARR. Low risk, slow.
 
-Consider: unit economics, brand dilution risk, channel conflict, target retailers.
+Partner with consulting firm: fastest route to market, leverages trusted relationships. Risk: partner controls client relationship, margin compression, non-exclusive.
 
-Expected duration: 20–25 min` },
+Acquire ComplianceOS: instant 680 clients + local team + German brand. At €45M ARR, likely valued €90–135M (2–3x ARR) — too expensive for €30M budget.
+
+Recommendation: Partner-led entry with 2–3 German compliance consulting firms for Year 1. Hire 3–4 local sales staff in parallel (Frankfurt) to begin building direct capability. Acquisition off-table at current budget, but ComplianceOS is the Year 3 target if Novatek reaches €20M German ARR.`,
+          watch: `⚠ Acquisition without checking if budget covers it
+⚠ Pure partner model without building direct capability — creates permanent dependency`,
+          followups: `"One of the consulting partners wants exclusivity for 2 years in exchange for introducing Novatek to 50 clients. Accept?"
+→ 50 warm introductions is valuable, but 2-year exclusivity prevents direct sales and blocks other partners. Counter: 12-month exclusivity on a named client list, non-exclusive after.`
+        },
+        {
+          title: 'Part 3 — Path to €100M',
+          prompt: `"Is €100M ARR in 5 years achievable? Walk me through the math."
+
+Curveball: "ComplianceOS just announced they are being acquired by a US compliance giant — Lexis Nexis — at €120M. They will relaunch with a US-backed product and aggressive European pricing within 12 months."`,
+          strong: `Revenue build:
+• France: €22M × 10% growth = €36M by Year 5 (maturing domestic)
+• Germany: partner entry, €5M ARR Year 1 → direct + partner, €25M ARR Year 5
+• UK (entry Year 2): €15M ARR Year 5
+• Netherlands/Belgium/Austria (MiFID dominoes, Year 3): €10M ARR Year 5
+• New modules (ESG compliance, DORA): €14M ARR Year 5
+Total: ~€100M ✓ achievable but requires all vectors executing
+
+On ComplianceOS/Lexis Nexis curveball:
+✔ Threat is real — US-backed competitor with German brand and aggressive pricing
+✔ Response: accelerate German direct sales hiring (don't rely solely on partners)
+✔ Lock in German consulting firm partners with exclusivity before Lexis Nexis approaches them
+✔ Differentiation: Novatek is purpose-built for MiFID — Lexis Nexis is a generalist. Own that positioning hard.
+✔ Consider approaching remaining German boutique compliance SaaS players for acqui-hire before they're scooped`,
+          watch: `⚠ "We have better tech, we'll be fine" without strategic response to the competitive threat
+⚠ Not flagging that consulting firm partners may be approached by Lexis Nexis`,
+          followups: `"Should Novatek raise more capital to accelerate in response to Lexis Nexis?"
+→ Depends on burn rate and timeline. €30M is sufficient if Germany executes as planned. Additional raise makes sense only if it buys 6 months of competitive lead — not if it just adds runway for the same plan.`
+        },
+        {
+          title: 'Final Recommendation',
+          prompt: `"CEO presentation in 60 seconds."`,
+          strong: `Gold: "€100M in 5 years is achievable — it requires France growing to €36M, Germany reaching €25M, UK €15M, Benelux/Austria €10M, and new modules €14M. The critical path is Germany. Enter via partner-led model with 2–3 Frankfurt-based compliance consulting firms, while hiring 3–4 direct sales in parallel — don't build a permanent partner dependency. Leverage the 4 existing French clients with German subsidiaries as the immediate beachhead: warm pipeline, zero product adaptation. On the Lexis Nexis threat: accelerate German partner lock-in before they arrive, double down on MiFID-specialist positioning (Lexis Nexis is a generalist), and evaluate acqui-hire options among German boutique players before they're acquired. UK entry in Month 18, MiFID dominoes (Netherlands, Belgium, Austria) in Year 3. US deferred until the EU platform hits €60M+ ARR — the product rebuild cost is only justified once the business can absorb it."`,
+          watch: `⚠ Not addressing the Lexis Nexis threat in the final recommendation
+⚠ Vague on market sequencing`,
+          followups: ``
+        }
+      ]
+    },
   ],
+
 };
 
 function showRoleModal() {
@@ -910,18 +1496,51 @@ function pickCaseType(type) {
 function loadCaseForInterviewer(caseType) {
   let pool = CASES[caseType];
   if (!pool) {
-    // Random
     const allTypes = Object.keys(CASES);
     const randType = allTypes[Math.floor(Math.random() * allTypes.length)];
     pool = CASES[randType];
     caseType = randType;
   }
   currentCase = pool[Math.floor(Math.random() * pool.length)];
-  document.getElementById('cp-case-title').textContent = '(' + caseType + ') ' + currentCase.title;
-  document.getElementById('cp-case-body').textContent = currentCase.body;
+
+  // Build rich case panel
+  const content = document.getElementById('case-content');
+  let html = `<div class="case-label">${caseType}</div>
+    <div class="case-title">${currentCase.title}</div>`;
+
+  // Setup block
+  html += `<div class="case-section">
+    <div class="case-section-title">📋 Case Setup — Read Aloud</div>
+    <div class="case-body">${currentCase.setup}</div>
+  </div>`;
+
+  // Strong start
+  if (currentCase.strong_start) {
+    html += `<div class="case-section">
+      <div class="case-section-title">🎯 What a Strong Candidate Does First</div>
+      <div class="case-body">${currentCase.strong_start}</div>
+    </div>`;
+  }
+
+  // Parts
+  if (currentCase.parts) {
+    currentCase.parts.forEach((part, i) => {
+      html += `<div class="case-section">
+        <div class="case-section-title" style="color:var(--pink);font-size:0.72rem;">${part.title}</div>
+        <div class="case-body" style="margin-bottom:0.6rem;">${part.prompt}</div>`;
+      if (part.strong) html += `<div class="case-body" style="color:#4ADE80;font-size:0.74rem;margin-bottom:0.4rem;">✔ Strong answer
+${part.strong}</div>`;
+      if (part.watch) html += `<div class="case-body" style="color:#FCD34D;font-size:0.74rem;margin-bottom:0.4rem;">⚠ Watch out for
+${part.watch}</div>`;
+      if (part.followups) html += `<div class="case-body" style="color:#93C5FD;font-size:0.74rem;">💬 Follow-ups
+${part.followups}</div>`;
+      html += `</div>`;
+    });
+  }
+
+  content.innerHTML = html;
   setupSessionBar('interviewer', caseType + ': ' + currentCase.title);
   document.getElementById('sb-case-btn').style.display = 'block';
-  // Auto-open case panel
   openCasePanel();
   showToast('Case loaded — check your prompt!');
 }
