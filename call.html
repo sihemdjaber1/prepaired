@@ -159,7 +159,7 @@
   <div id="chat-msgs"></div>
   <div id="chat-input-wrap">
     <input id="chat-input" placeholder="Message…" onkeydown="if(event.key==='Enter')sendChat()">
-    <label id="file-btn" title="Attach file" style="width:34px;height:34px;border-radius:8px;background:#1a1b22;border:1px solid var(--border);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:0.9rem;flex-shrink:0;">📎<input type="file" id="file-input" style="display:none" onchange="sendFile(this)"></label>
+    <button id="file-btn" title="Attach file" type="button" onclick="document.getElementById('file-input').click()" style="width:34px;height:34px;border-radius:8px;background:#1a1b22;border:1px solid var(--border);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:0.9rem;flex-shrink:0;">📎</button><input type="file" id="file-input" style="display:none" onchange="sendFile(this)">
     <button id="chat-send" onclick="sendChat()">↑</button>
   </div>
 </div>
