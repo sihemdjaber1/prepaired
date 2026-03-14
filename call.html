@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Prepaired · Video Call</title>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box;}
+  :root{
+    --bg:#0D0E12;--pink:#FF1F5F;--pink2:#E8185A;
+    --w:#E2E5F0;--g:#5A5C68;--card:#13141A;--border:rgba(255,255,255,0.07);
+  }
+  body{background:var(--bg);color:var(--w);font-family:'Inter',sans-serif;height:100dvh;display:flex;flex-direction:column;overflow:hidden;}
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+  /* ── HEADER ── */
+  #header{display:flex;align-items:center;justify-content:space-between;padding:0.9rem 1.5rem;border-bottom:1px solid var(--border);flex-shrink:0;}
+  #header .logo{display:flex;align-items:center;gap:0.5rem;font-size:0.95rem;font-weight:700;}
+  #header .logo span{color:var(--pink);}
+  #timer{font-size:0.82rem;font-weight:600;color:var(--g);letter-spacing:0.05em;font-variant-numeric:tabular-nums;}
+  #conn-status{font-size:0.7rem;padding:0.25rem 0.7rem;border-radius:100px;font-weight:600;}
+  #conn-status.connecting{background:rgba(234,179,8,0.1);color:#FCD34D;border:1px solid rgba(234,179,8,0.2);}
+  #conn-status.connected{background:rgba(34,197,94,0.1);color:#4ADE80;border:1px solid rgba(34,197,94,0.2);}
+  #conn-status.waiting{background:rgba(255,31,95,0.08);color:var(--pink);border:1px solid rgba(255,31,95,0.2);}
+
+  /* ── VIDEOS ── */
+  #stage{flex:1;display:grid;grid-template-columns:1fr 1fr;gap:1rem;padding:1rem;min-height:0;}
+  #stage.solo{grid-template-columns:1fr;}
+  .vid-wrap{position:relative;background:#0A0B0E;border-radius:14px;overflow:hidden;border:1px solid var(--border);}
+  .vid-wrap video{width:100%;height:100%;object-fit:cover;display:block;}
+  .vid-label{position:absolute;bottom:0.7rem;left:0.9rem;font-size:0.72rem;font-weight:600;background:rgba(0,0,0,0.6);backdrop-filter:blur(8px);padding:0.25rem 0.6rem;border-radius:6px;color:var(--w);}
+  #remote-wrap{position:relative;}
+  #waiting-overlay{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1rem;background:#0A0B0E;}
+  #waiting-overlay .pulse{width:56px;height:56px;border-radius:50%;background:rgba(255,31,95,0.1);border:2px solid rgba(255,31,95,0.3);animation:pulse 2s ease-in-out infinite;display:flex;align-items:center;justify-content:center;font-size:1.4rem;}
+  @keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(255,31,95,0.3);}50%{box-shadow:0 0 0 16px rgba(255,31,95,0);}}
+  #waiting-overlay p{font-size:0.82rem;color:var(--g);}
+
+  /* ── CONTROLS ── */
+  #controls{display:flex;align-items:center;justify-content:center;gap:0.8rem;padding:1rem;flex-shrink:0;border-top:1px solid var(--border);}
+  .ctrl-btn{width:52px;height:52px;border-radius:50%;border:1px solid var(--border);background:var(--card);color:var(--w);font-size:1.1rem;cursor:pointer;transition:all 0.2s;display:flex;align-items:center;justify-content:center;}
+  .ctrl-btn:hover{border-color:rgba(255,31,95,0.3);background:#1a1b22;}
+  .ctrl-btn.off{background:rgba(255,31,95,0.12);border-color:rgba(255,31,95,0.3);color:var(--pink);}
+  .ctrl-btn.end{background:var(--pink);border-color:var(--pink);color:#fff;width:60px;height:60px;font-size:1.3rem;}
+  .ctrl-btn.end:hover{background:var(--pink2);}
+
+  /* ── CHAT ── */
+  #chat-panel{position:fixed;right:0;top:0;bottom:0;width:300px;background:var(--card);border-left:1px solid var(--border);display:flex;flex-direction:column;transform:translateX(100%);transition:transform 0.25s ease;}
+  #chat-panel.open{transform:translateX(0);}
+  #chat-header{padding:1rem;border-bottom:1px solid var(--border);font-size:0.85rem;font-weight:600;display:flex;justify-content:space-between;align-items:center;}
+  #chat-close{background:none;border:none;color:var(--g);cursor:pointer;font-size:1rem;}
+  #chat-msgs{flex:1;overflow-y:auto;padding:1rem;display:flex;flex-direction:column;gap:0.6rem;}
+  .msg{max-width:85%;padding:0.5rem 0.8rem;border-radius:10px;font-size:0.8rem;line-height:1.5;}
+  .msg.mine{background:rgba(255,31,95,0.15);border:1px solid rgba(255,31,95,0.2);align-self:flex-end;}
+  .msg.theirs{background:#1a1b22;border:1px solid var(--border);align-self:flex-start;}
+  .msg .sender{font-size:0.65rem;font-weight:600;color:var(--g);margin-bottom:0.2rem;}
+  #chat-input-wrap{display:flex;gap:0.5rem;padding:0.8rem;border-top:1px solid var(--border);}
+  #chat-input{flex:1;background:#0D0E12;border:1px solid var(--border);border-radius:8px;padding:0.5rem 0.8rem;color:var(--w);font-size:0.82rem;font-family:inherit;outline:none;}
+  #chat-input:focus{border-color:rgba(255,31,95,0.3);}
+  #chat-send{background:var(--pink);border:none;color:#fff;width:34px;height:34px;border-radius:8px;cursor:pointer;font-size:0.9rem;}
+
+  /* ── LOBBY ── */
+  #lobby{position:fixed;inset:0;background:var(--bg);display:flex;align-items:center;justify-content:center;z-index:100;}
+  #lobby-card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:2.5rem;width:420px;max-width:90vw;text-align:center;}
+  #lobby-card .logo-l{font-size:1.1rem;font-weight:700;margin-bottom:2rem;color:var(--g);}
+  #lobby-card .logo-l span{color:var(--pink);}
+  #lobby-preview{width:100%;aspect-ratio:16/9;border-radius:10px;overflow:hidden;background:#0A0B0E;margin-bottom:1.5rem;position:relative;}
+  #lobby-preview video{width:100%;height:100%;object-fit:cover;}
+  #lobby-preview .no-cam{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:2rem;color:var(--g);}
+  #lobby-name{width:100%;background:#0D0E12;border:1px solid var(--border);border-radius:8px;padding:0.7rem 1rem;color:var(--w);font-size:0.9rem;font-family:inherit;outline:none;margin-bottom:0.8rem;text-align:center;}
+  #lobby-name:focus{border-color:rgba(255,31,95,0.3);}
+  #join-btn{width:100%;background:var(--pink);color:#fff;border:none;border-radius:10px;padding:0.9rem;font-size:0.92rem;font-weight:700;cursor:pointer;font-family:inherit;transition:background 0.2s;}
+  #join-btn:hover{background:var(--pink2);}
+  #join-btn:disabled{opacity:0.5;cursor:not-allowed;}
+  .lobby-hint{font-size:0.72rem;color:var(--g);margin-top:0.8rem;line-height:1.6;}
+  #lobby-devices{display:flex;gap:0.5rem;margin-bottom:1rem;}
+  #lobby-devices button{flex:1;padding:0.5rem;background:#0D0E12;border:1px solid var(--border);border-radius:8px;color:var(--g);font-size:0.72rem;cursor:pointer;transition:all 0.2s;}
+  #lobby-devices button.active{border-color:rgba(255,31,95,0.3);color:var(--pink);}
+
+  /* ── TOAST ── */
+  #toast{position:fixed;bottom:5rem;left:50%;transform:translateX(-50%);background:#1a1b22;border:1px solid var(--border);border-radius:10px;padding:0.6rem 1.2rem;font-size:0.8rem;opacity:0;transition:opacity 0.3s;pointer-events:none;white-space:nowrap;}
+  #toast.show{opacity:1;}
+
+  #unread-badge{position:absolute;top:-4px;right:-4px;background:var(--pink);color:#fff;font-size:0.6rem;font-weight:700;width:16px;height:16px;border-radius:50%;display:flex;align-items:center;justify-content:center;display:none;}
+</style>
+</head>
+<body>
+
+<!-- LOBBY -->
+<div id="lobby">
+  <div id="lobby-card">
+    <div class="logo-l"><span>•</span> Prepaired</div>
+    <div id="lobby-preview">
+      <video id="lobby-vid" autoplay muted playsinline></video>
+      <div class="no-cam" id="no-cam-msg">📷</div>
+    </div>
+    <div id="lobby-devices">
+      <button id="tog-cam-l" class="active" onclick="toggleLobbyDevice('cam')">📹 Camera on</button>
+      <button id="tog-mic-l" class="active" onclick="toggleLobbyDevice('mic')">🎤 Mic on</button>
+    </div>
+    <input id="lobby-name" placeholder="Your name" maxlength="40">
+    <button id="join-btn" onclick="joinCall()" disabled>Join session</button>
+    <div class="lobby-hint">Your partner will join using the same link.<br>Nothing to install — runs in your browser.</div>
+  </div>
+</div>
+
+<!-- HEADER -->
+<div id="header">
+  <div class="logo"><span>•</span> Prepaired</div>
+  <div id="timer">00:00</div>
+  <div style="display:flex;gap:0.6rem;align-items:center;">
+    <div id="conn-status" class="waiting">Waiting for partner…</div>
+  </div>
+</div>
+
+<!-- STAGE -->
+<div id="stage">
+  <div class="vid-wrap" id="local-wrap">
+    <video id="local-vid" autoplay muted playsinline></video>
+    <div class="vid-label" id="local-label">You</div>
+  </div>
+  <div class="vid-wrap" id="remote-wrap">
+    <video id="remote-vid" autoplay playsinline></video>
+    <div class="vid-label" id="remote-label">Partner</div>
+    <div id="waiting-overlay">
+      <div class="pulse">👤</div>
+      <p>Waiting for your partner to join…</p>
+    </div>
+  </div>
+</div>
+
+<!-- CONTROLS -->
+<div id="controls">
+  <button class="ctrl-btn" id="btn-mic" onclick="toggleMic()" title="Mute/Unmute">🎤</button>
+  <button class="ctrl-btn" id="btn-cam" onclick="toggleCam()" title="Camera on/off">📹</button>
+  <button class="ctrl-btn end" onclick="endCall()" title="End call">📵</button>
+  <div style="position:relative">
+    <button class="ctrl-btn" id="btn-chat" onclick="toggleChat()" title="Chat">💬</button>
+    <div id="unread-badge">0</div>
+  </div>
+</div>
+
+<!-- CHAT -->
+<div id="chat-panel">
+  <div id="chat-header">
+    Session chat
+    <button id="chat-close" onclick="toggleChat()">✕</button>
+  </div>
+  <div id="chat-msgs"></div>
+  <div id="chat-input-wrap">
+    <input id="chat-input" placeholder="Message…" onkeydown="if(event.key==='Enter')sendChat()">
+    <button id="chat-send" onclick="sendChat()">↑</button>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script>
+const SB_URL = 'https://reugkvdvfhqpxvbmxlox.supabase.co';
+const SB_KEY = 'sb_publishable_KBssRnU1sUVtR86VZEafdQ_-CBRiL_T';
+const sb = window.supabase.createClient(SB_URL, SB_KEY);
+
+// ── ROOM ID from URL ─────────────────────────────────────
+const params = new URLSearchParams(location.search);
+const ROOM = params.get('room') || 'test-room';
+let myName = '';
+let myId = Math.random().toString(36).slice(2);
+let localStream = null;
+let pc = null;
+let channel = null;
+let callStarted = false;
+let timerInterval = null;
+let seconds = 0;
+let micOn = true, camOn = true;
+let chatOpen = false;
+let unread = 0;
+let isInitiator = false;
+
+const ICE_SERVERS = {
+  iceServers: [
+    { urls: 'stun:stun.l.google.com:19302' },
+    { urls: 'stun:stun1.l.google.com:19302' },
+    { urls: 'stun:stun2.l.google.com:19302' },
+  ]
+};
+
+// ── LOBBY ────────────────────────────────────────────────
+const nameInput = document.getElementById('lobby-name');
+const joinBtn = document.getElementById('join-btn');
+nameInput.addEventListener('input', () => {
+  joinBtn.disabled = nameInput.value.trim().length < 1;
+});
+
+// Pre-fill name from URL
+if (params.get('name')) {
+  nameInput.value = decodeURIComponent(params.get('name'));
+  joinBtn.disabled = false;
+}
+
+// Start lobby camera preview
+async function startLobbyPreview() {
+  try {
+    localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+    document.getElementById('lobby-vid').srcObject = localStream;
+    document.getElementById('no-cam-msg').style.display = 'none';
+  } catch (e) {
+    showToast('Camera/mic access denied — you can still join audio only');
+  }
+}
+startLobbyPreview();
+
+let lobbyMicOn = true, lobbyCamOn = true;
+function toggleLobbyDevice(type) {
+  if (type === 'cam') {
+    lobbyCamOn = !lobbyCamOn;
+    if (localStream) localStream.getVideoTracks().forEach(t => t.enabled = lobbyCamOn);
+    const btn = document.getElementById('tog-cam-l');
+    btn.textContent = lobbyCamOn ? '📹 Camera on' : '📷 Camera off';
+    btn.classList.toggle('active', lobbyCamOn);
+  } else {
+    lobbyMicOn = !lobbyMicOn;
+    if (localStream) localStream.getAudioTracks().forEach(t => t.enabled = lobbyMicOn);
+    const btn = document.getElementById('tog-mic-l');
+    btn.textContent = lobbyMicOn ? '🎤 Mic on' : '🔇 Mic off';
+    btn.classList.toggle('active', lobbyMicOn);
+  }
+}
+
+async function joinCall() {
+  myName = nameInput.value.trim();
+  if (!myName) return;
+  micOn = lobbyMicOn;
+  camOn = lobbyCamOn;
+
+  // Get local stream if not yet
+  if (!localStream) {
+    try {
+      localStream = await navigator.mediaDevices.getUserMedia({ video: camOn, audio: micOn });
+    } catch (e) {
+      try { localStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false }); }
+      catch (e2) { showToast('Could not access camera/mic'); return; }
+    }
+  }
+
+  document.getElementById('local-vid').srcObject = localStream;
+  document.getElementById('local-label').textContent = myName + ' (you)';
+  document.getElementById('lobby').style.display = 'none';
+  updateCtrlBtns();
+  initSignaling();
+}
+
+// ── SIGNALING via Supabase Realtime ─────────────────────
+function initSignaling() {
+  channel = sb.channel('room:' + ROOM, {
+    config: { broadcast: { self: false } }
+  });
+
+  channel
+    .on('broadcast', { event: 'signal' }, ({ payload }) => {
+      if (payload.to && payload.to !== myId) return;
+      handleSignal(payload);
+    })
+    .on('broadcast', { event: 'peer-joined' }, ({ payload }) => {
+      if (payload.id === myId) return;
+      showToast(payload.name + ' joined');
+      document.getElementById('remote-label').textContent = payload.name;
+      // I am the initiator if they joined after me
+      if (!pc) {
+        isInitiator = true;
+        createPeerConnection(payload.id);
+        startOffer(payload.id);
+      }
+    })
+    .on('broadcast', { event: 'chat' }, ({ payload }) => {
+      if (payload.id === myId) return;
+      addChatMsg(payload.name, payload.text, false);
+      if (!chatOpen) {
+        unread++;
+        const badge = document.getElementById('unread-badge');
+        badge.style.display = 'flex';
+        badge.textContent = unread;
+      }
+    })
+    .on('broadcast', { event: 'peer-left' }, ({ payload }) => {
+      if (payload.id === myId) return;
+      showToast(payload.name + ' left the call');
+      document.getElementById('waiting-overlay').style.display = 'flex';
+      setStatus('waiting', 'Partner disconnected');
+    })
+    .subscribe(async (status) => {
+      if (status === 'SUBSCRIBED') {
+        await channel.send({ type: 'broadcast', event: 'peer-joined', payload: { id: myId, name: myName } });
+      }
+    });
+}
+
+// ── WebRTC ───────────────────────────────────────────────
+function createPeerConnection(peerId) {
+  pc = new RTCPeerConnection(ICE_SERVERS);
+
+  localStream.getTracks().forEach(track => pc.addTrack(track, localStream));
+
+  pc.ontrack = (e) => {
+    const remoteVid = document.getElementById('remote-vid');
+    remoteVid.srcObject = e.streams[0];
+    document.getElementById('waiting-overlay').style.display = 'none';
+    setStatus('connected', 'Connected');
+    if (!callStarted) { callStarted = true; startTimer(); }
+  };
+
+  pc.onicecandidate = (e) => {
+    if (e.candidate) {
+      channel.send({ type: 'broadcast', event: 'signal', payload: {
+        type: 'candidate', candidate: e.candidate, from: myId, to: peerId
+      }});
+    }
+  };
+
+  pc.onconnectionstatechange = () => {
+    if (pc.connectionState === 'disconnected' || pc.connectionState === 'failed') {
+      setStatus('waiting', 'Connection lost');
+    }
+  };
+
+  setStatus('connecting', 'Connecting…');
+}
+
+async function startOffer(peerId) {
+  const offer = await pc.createOffer();
+  await pc.setLocalDescription(offer);
+  channel.send({ type: 'broadcast', event: 'signal', payload: {
+    type: 'offer', sdp: offer, from: myId, to: peerId
+  }});
+}
+
+async function handleSignal(payload) {
+  if (payload.type === 'offer') {
+    if (!pc) createPeerConnection(payload.from);
+    await pc.setRemoteDescription(new RTCSessionDescription(payload.sdp));
+    const answer = await pc.createAnswer();
+    await pc.setLocalDescription(answer);
+    channel.send({ type: 'broadcast', event: 'signal', payload: {
+      type: 'answer', sdp: answer, from: myId, to: payload.from
+    }});
+  } else if (payload.type === 'answer') {
+    await pc.setRemoteDescription(new RTCSessionDescription(payload.sdp));
+  } else if (payload.type === 'candidate') {
+    try { await pc.addIceCandidate(new RTCIceCandidate(payload.candidate)); } catch(e){}
+  }
+}
+
+// ── CONTROLS ────────────────────────────────────────────
+function toggleMic() {
+  micOn = !micOn;
+  localStream.getAudioTracks().forEach(t => t.enabled = micOn);
+  updateCtrlBtns();
+  showToast(micOn ? 'Microphone on' : 'Microphone muted');
+}
+
+function toggleCam() {
+  camOn = !camOn;
+  localStream.getVideoTracks().forEach(t => t.enabled = camOn);
+  updateCtrlBtns();
+  showToast(camOn ? 'Camera on' : 'Camera off');
+}
+
+function updateCtrlBtns() {
+  document.getElementById('btn-mic').textContent = micOn ? '🎤' : '🔇';
+  document.getElementById('btn-mic').classList.toggle('off', !micOn);
+  document.getElementById('btn-cam').textContent = camOn ? '📹' : '📷';
+  document.getElementById('btn-cam').classList.toggle('off', !camOn);
+}
+
+function endCall() {
+  if (!confirm('End the session?')) return;
+  channel?.send({ type: 'broadcast', event: 'peer-left', payload: { id: myId, name: myName } });
+  pc?.close();
+  localStream?.getTracks().forEach(t => t.stop());
+  clearInterval(timerInterval);
+  window.location.href = 'index.html';
+}
+
+// ── TIMER ────────────────────────────────────────────────
+function startTimer() {
+  timerInterval = setInterval(() => {
+    seconds++;
+    const m = String(Math.floor(seconds / 60)).padStart(2, '0');
+    const s = String(seconds % 60).padStart(2, '0');
+    document.getElementById('timer').textContent = m + ':' + s;
+  }, 1000);
+}
+
+// ── CHAT ─────────────────────────────────────────────────
+function toggleChat() {
+  chatOpen = !chatOpen;
+  document.getElementById('chat-panel').classList.toggle('open', chatOpen);
+  if (chatOpen) {
+    unread = 0;
+    const badge = document.getElementById('unread-badge');
+    badge.style.display = 'none';
+    setTimeout(() => document.getElementById('chat-input').focus(), 300);
+  }
+}
+
+function sendChat() {
+  const input = document.getElementById('chat-input');
+  const text = input.value.trim();
+  if (!text) return;
+  channel?.send({ type: 'broadcast', event: 'chat', payload: { id: myId, name: myName, text } });
+  addChatMsg('You', text, true);
+  input.value = '';
+}
+
+function addChatMsg(sender, text, mine) {
+  const msgs = document.getElementById('chat-msgs');
+  const div = document.createElement('div');
+  div.className = 'msg ' + (mine ? 'mine' : 'theirs');
+  div.innerHTML = `<div class="sender">${sender}</div>${text}`;
+  msgs.appendChild(div);
+  msgs.scrollTop = msgs.scrollHeight;
+}
+
+// ── STATUS ───────────────────────────────────────────────
+function setStatus(type, text) {
+  const el = document.getElementById('conn-status');
+  el.className = 'conn-status ' + type;
+  el.textContent = text;
+}
+
+// ── TOAST ────────────────────────────────────────────────
+let toastTimer;
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 2500);
+}
+</script>
+</body>
+</html>
