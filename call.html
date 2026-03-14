@@ -80,6 +80,42 @@
   #toast{position:fixed;bottom:5rem;left:50%;transform:translateX(-50%);background:#1a1b22;border:1px solid var(--border);border-radius:10px;padding:0.6rem 1.2rem;font-size:0.8rem;opacity:0;transition:opacity 0.3s;pointer-events:none;white-space:nowrap;}
   #toast.show{opacity:1;}
 
+  /* ── SESSION OVERLAYS ── */
+  .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.8);backdrop-filter:blur(6px);z-index:200;display:flex;align-items:center;justify-content:center;}
+  .modal-card{background:#13141A;border:1px solid rgba(255,31,95,0.2);border-radius:16px;padding:2rem;width:460px;max-width:92vw;text-align:center;}
+  .modal-title{font-size:1.1rem;font-weight:700;color:var(--w);margin-bottom:0.4rem;}
+  .modal-sub{font-size:0.78rem;color:var(--g);margin-bottom:1.8rem;line-height:1.6;}
+  .role-btn{width:100%;padding:1rem;border-radius:10px;border:1px solid var(--border);background:#0D0E12;color:var(--w);font-size:0.92rem;font-weight:600;cursor:pointer;transition:all 0.2s;margin-bottom:0.7rem;font-family:inherit;text-align:left;display:flex;align-items:center;gap:0.9rem;}
+  .role-btn:hover{border-color:rgba(255,31,95,0.4);background:#1a1b22;}
+  .role-btn .rb-icon{font-size:1.5rem;flex-shrink:0;}
+  .role-btn .rb-text{display:flex;flex-direction:column;gap:0.2rem;}
+  .role-btn .rb-label{font-size:0.92rem;font-weight:700;}
+  .role-btn .rb-desc{font-size:0.72rem;color:var(--g);font-weight:400;}
+  .case-type-grid{display:grid;grid-template-columns:1fr 1fr;gap:0.6rem;margin-bottom:1.2rem;}
+  .case-type-btn{padding:0.7rem 0.5rem;border-radius:8px;border:1px solid var(--border);background:#0D0E12;color:var(--w);font-size:0.78rem;font-weight:600;cursor:pointer;transition:all 0.2s;font-family:inherit;}
+  .case-type-btn:hover,.case-type-btn.sel{border-color:var(--pink);background:rgba(255,31,95,0.08);color:var(--pink);}
+  /* ── CASE PANEL ── */
+  #case-panel{position:fixed;left:0;top:56px;bottom:72px;width:320px;background:#0D0E12;border-right:1px solid var(--border);display:flex;flex-direction:column;transform:translateX(-100%);transition:transform 0.25s ease;z-index:50;overflow-y:auto;}
+  #case-panel.open{transform:translateX(0);}
+  #case-panel-header{padding:1rem;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;}
+  #case-panel-header .cp-title{font-size:0.85rem;font-weight:700;}
+  #case-panel-header .cp-role{font-size:0.65rem;padding:0.2rem 0.6rem;border-radius:100px;font-weight:600;}
+  .role-interviewer{background:rgba(59,130,246,0.1);color:#93C5FD;border:1px solid rgba(59,130,246,0.2);}
+  .role-interviewee{background:rgba(34,197,94,0.1);color:#4ADE80;border:1px solid rgba(34,197,94,0.2);}
+  #case-content{padding:1rem;flex:1;}
+  #case-content .case-label{font-size:0.6rem;font-weight:700;letter-spacing:0.13em;text-transform:uppercase;color:var(--pink);margin-bottom:0.5rem;}
+  #case-content .case-title{font-size:1rem;font-weight:700;color:var(--w);margin-bottom:0.8rem;line-height:1.4;}
+  #case-content .case-body{font-size:0.78rem;color:#B0B4C8;line-height:1.7;white-space:pre-line;}
+  #case-content .case-section{margin-top:1rem;padding-top:1rem;border-top:1px solid var(--border);}
+  #case-content .case-section-title{font-size:0.65rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--g);margin-bottom:0.4rem;}
+  /* ── SESSION TOOLBAR ── */
+  #session-bar{display:none;align-items:center;justify-content:space-between;padding:0.5rem 1rem;background:rgba(255,31,95,0.06);border-bottom:1px solid rgba(255,31,95,0.12);flex-shrink:0;}
+  #session-bar.show{display:flex;}
+  #session-bar .sb-role{font-size:0.72rem;font-weight:600;}
+  #session-bar .sb-case{font-size:0.7rem;color:var(--g);max-width:200px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  #session-bar .sb-btn{font-size:0.72rem;font-weight:600;padding:0.3rem 0.8rem;border-radius:6px;border:none;cursor:pointer;font-family:inherit;}
+  #session-bar .sb-done{background:var(--pink);color:#fff;}
+  #session-bar .sb-case-toggle{background:transparent;border:1px solid var(--border);color:var(--g);}
   #unread-badge{position:absolute;top:-4px;right:-4px;background:var(--pink);color:#fff;font-size:0.6rem;font-weight:700;width:16px;height:16px;border-radius:50%;display:flex;align-items:center;justify-content:center;display:none;}
   .msg-file{display:flex;align-items:center;gap:0.6rem;padding:0.5rem 0.8rem;border-radius:10px;font-size:0.78rem;max-width:85%;}
   .msg-file.mine{background:rgba(255,31,95,0.15);border:1px solid rgba(255,31,95,0.2);align-self:flex-end;}
@@ -124,7 +160,7 @@
 </div>
 
 <!-- STAGE -->
-<div id="stage">
+<div id="stage" style="margin-left:0;transition:margin-left 0.25s;">
   <div class="vid-wrap" id="local-wrap">
     <video id="local-vid" autoplay muted playsinline></video>
     <div class="vid-label" id="local-label">You</div>
@@ -161,6 +197,94 @@
     <input id="chat-input" placeholder="Message…" onkeydown="if(event.key==='Enter')sendChat()">
     <button id="file-btn" title="Attach file" type="button" onclick="document.getElementById('file-input').click()" style="width:34px;height:34px;border-radius:8px;background:#1a1b22;border:1px solid var(--border);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:0.9rem;flex-shrink:0;">📎</button><input type="file" id="file-input" style="display:none" onchange="sendFile(this)">
     <button id="chat-send" onclick="sendChat()">↑</button>
+  </div>
+</div>
+
+<!-- ROLE SELECTION MODAL -->
+<div id="role-modal" class="modal-overlay" style="display:none;">
+  <div class="modal-card">
+    <div class="modal-title">Who plays which role?</div>
+    <div class="modal-sub">Choose your role for this round. You can switch after finishing.</div>
+    <button class="role-btn" onclick="selectRole('interviewer')">
+      <div class="rb-icon">🎙️</div>
+      <div class="rb-text">
+        <div class="rb-label">Interviewer</div>
+        <div class="rb-desc">You run the case, ask questions, guide the candidate</div>
+      </div>
+    </button>
+    <button class="role-btn" onclick="selectRole('interviewee')">
+      <div class="rb-icon">🧠</div>
+      <div class="rb-text">
+        <div class="rb-label">Interviewee</div>
+        <div class="rb-desc">You solve the case — pick a case type to get started</div>
+      </div>
+    </button>
+  </div>
+</div>
+
+<!-- CASE TYPE MODAL (for interviewee) -->
+<div id="casetype-modal" class="modal-overlay" style="display:none;">
+  <div class="modal-card">
+    <div class="modal-title">Choose a case type</div>
+    <div class="modal-sub">Your interviewer will receive a case prompt to guide you through.</div>
+    <div class="case-type-grid">
+      <button class="case-type-btn" onclick="pickCaseType('M&A')">🤝 M&A</button>
+      <button class="case-type-btn" onclick="pickCaseType('Profitability')">📉 Profitability</button>
+      <button class="case-type-btn" onclick="pickCaseType('Market Entry')">🌍 Market Entry</button>
+      <button class="case-type-btn" onclick="pickCaseType('Market Sizing')">📊 Market Sizing</button>
+      <button class="case-type-btn" onclick="pickCaseType('Operations')">⚙️ Operations</button>
+      <button class="case-type-btn" onclick="pickCaseType('Pricing')">💰 Pricing</button>
+      <button class="case-type-btn" onclick="pickCaseType('Growth Strategy')">🚀 Growth Strategy</button>
+      <button class="case-type-btn" onclick="pickCaseType('Random')">🎲 Surprise me</button>
+    </div>
+  </div>
+</div>
+
+<!-- ROUND END MODAL -->
+<div id="roundend-modal" class="modal-overlay" style="display:none;">
+  <div class="modal-card">
+    <div style="font-size:2rem;margin-bottom:0.8rem;">✅</div>
+    <div class="modal-title">Round complete!</div>
+    <div class="modal-sub">Great work. What do you want to do next?</div>
+    <button class="role-btn" onclick="switchRoles()">
+      <div class="rb-icon">🔄</div>
+      <div class="rb-text">
+        <div class="rb-label">Switch roles</div>
+        <div class="rb-desc">Now you play the other role — pick a new case type</div>
+      </div>
+    </button>
+    <button class="role-btn" onclick="confirmEndCall()" style="margin-bottom:0;">
+      <div class="rb-icon">👋</div>
+      <div class="rb-text">
+        <div class="rb-label">End session</div>
+        <div class="rb-desc">That's a wrap — close the call</div>
+      </div>
+    </button>
+  </div>
+</div>
+
+<!-- CASE PANEL (interviewer's cheat sheet) -->
+<div id="case-panel">
+  <div id="case-panel-header">
+    <div class="cp-title">Your case prompt</div>
+    <span id="cp-role-badge" class="cp-role role-interviewer">Interviewer</span>
+  </div>
+  <div id="case-content">
+    <div class="case-label">Case type</div>
+    <div class="case-title" id="cp-case-title">Loading…</div>
+    <div class="case-body" id="cp-case-body"></div>
+  </div>
+</div>
+
+<!-- SESSION BAR -->
+<div id="session-bar">
+  <div style="display:flex;flex-direction:column;gap:0.1rem;">
+    <div class="sb-role" id="sb-role-text">Interviewer</div>
+    <div class="sb-case" id="sb-case-text"></div>
+  </div>
+  <div style="display:flex;gap:0.5rem;">
+    <button class="sb-btn sb-case-toggle" id="sb-case-btn" onclick="toggleCasePanel()" style="display:none;">📋 Case</button>
+    <button class="sb-btn sb-done" onclick="showRoundEnd()">✓ Done with round</button>
   </div>
 </div>
 
@@ -317,7 +441,13 @@ function createPeerConnection(peerId) {
     remoteVid.srcObject = e.streams[0];
     document.getElementById('waiting-overlay').style.display = 'none';
     setStatus('connected', 'Connected');
-    if (!callStarted) { callStarted = true; startTimer(); }
+    if (!callStarted) {
+      callStarted = true;
+      startTimer();
+      setupSessionSignals();
+      // Show role modal after short delay
+      setTimeout(showRoleModal, 1200);
+    }
   };
 
   // Data channel for file transfer
@@ -605,6 +735,265 @@ function showFileInline(el, name, url) {
   const msgs = document.getElementById('chat-msgs');
   msgs.scrollTop = msgs.scrollHeight;
 }
+
+// ── SESSION STATE ────────────────────────────────────────
+let myRole = null; // 'interviewer' | 'interviewee'
+let currentCase = null;
+let casePanel = false;
+let roundCount = 0;
+
+const CASES = {
+  'M&A': [
+    { title: 'TechCorp Acquisition', body: `Your client, a European PE fund, is considering acquiring TechCorp, a SaaS company with €40M ARR growing at 30% YoY.
+
+Key prompt: "Our client wants to know if this acquisition makes strategic sense and what they should pay for it."
+
+Guide the candidate through:
+1. Strategic rationale (why acquire?)
+2. Valuation approach (revenue multiples, DCF)
+3. Key risks & synergies
+4. Integration considerations
+
+Expected duration: 25–35 min` },
+    { title: 'Pharma Merger', body: `A large French pharma company is evaluating a merger with a Swiss biotech.
+
+Key prompt: "Our client wants to assess whether this merger creates value and how to structure the deal."
+
+Guide through:
+1. Strategic fit
+2. Revenue & cost synergies
+3. Regulatory hurdles
+4. Deal structure (share vs cash)
+
+Expected duration: 25–35 min` },
+  ],
+  'Profitability': [
+    { title: 'Retail Chain Declining Margins', body: `A mid-sized European retail chain has seen EBITDA margins fall from 12% to 6% over 3 years despite stable revenues.
+
+Key prompt: "Our client wants to understand why margins are declining and what to do about it."
+
+Guide through:
+1. Revenue vs cost diagnosis
+2. Product mix / pricing issues
+3. Cost structure (COGS, SG&A)
+4. Recommendations
+
+Expected duration: 20–30 min` },
+    { title: 'Airline Losses', body: `A regional airline has been loss-making for 2 years after being profitable for a decade.
+
+Key prompt: "Identify the root causes and recommend a path back to profitability."
+
+Focus areas: load factor, yield management, fuel costs, competition.
+
+Expected duration: 20–30 min` },
+  ],
+  'Market Entry': [
+    { title: 'US Market Entry', body: `A French luxury skincare brand wants to enter the US market.
+
+Key prompt: "Should our client enter the US? If yes, how?"
+
+Guide through:
+1. Market attractiveness (size, growth, competition)
+2. Client fit & positioning
+3. Entry mode (organic, JV, acquisition)
+4. Go-to-market strategy
+
+Expected duration: 20–30 min` },
+    { title: 'EV Charging in Germany', body: `An energy company wants to enter the German EV charging network market.
+
+Key prompt: "Is this an attractive market to enter, and how should we approach it?"
+
+Consider: infrastructure needs, regulation, competitive dynamics, B2B vs B2C.
+
+Expected duration: 25–35 min` },
+  ],
+  'Market Sizing': [
+    { title: 'Coffee Market in Paris', body: `Estimate the size of the coffee-to-go market in Paris.
+
+Key prompt: "Walk me through how you would size this market."
+
+Expect a structured approach:
+• Population segmentation
+• Consumption frequency
+• Average spend
+• Sanity check
+
+Tip: Push the candidate to be precise about assumptions and label them clearly.
+
+Expected duration: 15–20 min` },
+    { title: 'Online Tutoring France', body: `Estimate the total addressable market for online tutoring in France.
+
+Key prompt: "How large is this market and how fast is it growing?"
+
+Guide: student population, penetration rate, avg spend, split by level (primary/secondary/university).
+
+Expected duration: 15–20 min` },
+  ],
+  'Operations': [
+    { title: 'Supply Chain Disruption', body: `A consumer electronics manufacturer is facing 3-week delivery delays due to supply chain issues.
+
+Key prompt: "Our client is losing customers. Diagnose the problem and recommend fixes."
+
+Areas: supplier concentration, inventory strategy, logistics, demand forecasting.
+
+Expected duration: 20–25 min` },
+    { title: 'Factory Productivity', body: `A car parts manufacturer has productivity 20% below industry benchmark.
+
+Key prompt: "What's driving the gap and how do we close it?"
+
+Focus: capacity utilization, workforce, process inefficiencies, capex needs.
+
+Expected duration: 20–25 min` },
+  ],
+  'Pricing': [
+    { title: 'SaaS Repricing', body: `A B2B SaaS company is considering raising prices by 30% for its core product.
+
+Key prompt: "Should they do it, and how?"
+
+Guide through: value-based pricing, elasticity, competitive positioning, migration risk, phasing.
+
+Expected duration: 20–25 min` },
+    { title: 'Premium Product Launch', body: `A food company is launching a premium organic line at 2x the price of its standard range.
+
+Key prompt: "What pricing strategy should they adopt?"
+
+Consider: willingness to pay, brand perception, channel strategy, cannibalization.
+
+Expected duration: 20–25 min` },
+  ],
+  'Growth Strategy': [
+    { title: 'EdTech Scaling', body: `An EdTech startup has 50K users in France and wants to 10x in 3 years.
+
+Key prompt: "How should they grow?"
+
+Guide: organic vs inorganic, geo expansion, product expansion, monetization, partnerships.
+
+Expected duration: 25–30 min` },
+    { title: 'D2C Brand Expansion', body: `A D2C beauty brand has strong online presence and wants to expand into retail.
+
+Key prompt: "Should they go into physical retail and how?"
+
+Consider: unit economics, brand dilution risk, channel conflict, target retailers.
+
+Expected duration: 20–25 min` },
+  ],
+};
+
+function showRoleModal() {
+  document.getElementById('role-modal').style.display = 'flex';
+}
+
+function selectRole(role) {
+  myRole = role;
+  document.getElementById('role-modal').style.display = 'none';
+
+  // Broadcast role to partner via channel
+  channel?.send({ type: 'broadcast', event: 'role-selected', payload: { id: myId, role } });
+
+  if (role === 'interviewee') {
+    document.getElementById('casetype-modal').style.display = 'flex';
+  } else {
+    // Interviewer waits for case type from partner
+    setupSessionBar('interviewer', 'Waiting for candidate to pick case…');
+    showToast('Waiting for your partner to pick the case type…');
+  }
+}
+
+function pickCaseType(type) {
+  document.getElementById('casetype-modal').style.display = 'none';
+  // Broadcast case type selection
+  channel?.send({ type: 'broadcast', event: 'case-type-selected', payload: { id: myId, caseType: type } });
+  setupSessionBar('interviewee', type + ' case');
+  showToast('Case type sent to your interviewer!');
+}
+
+function loadCaseForInterviewer(caseType) {
+  let pool = CASES[caseType];
+  if (!pool) {
+    // Random
+    const allTypes = Object.keys(CASES);
+    const randType = allTypes[Math.floor(Math.random() * allTypes.length)];
+    pool = CASES[randType];
+    caseType = randType;
+  }
+  currentCase = pool[Math.floor(Math.random() * pool.length)];
+  document.getElementById('cp-case-title').textContent = '(' + caseType + ') ' + currentCase.title;
+  document.getElementById('cp-case-body').textContent = currentCase.body;
+  setupSessionBar('interviewer', caseType + ': ' + currentCase.title);
+  document.getElementById('sb-case-btn').style.display = 'block';
+  // Auto-open case panel
+  openCasePanel();
+  showToast('Case loaded — check your prompt!');
+}
+
+function setupSessionBar(role, caseText) {
+  const bar = document.getElementById('session-bar');
+  bar.classList.add('show');
+  document.getElementById('sb-role-text').innerHTML =
+    role === 'interviewer'
+      ? '<span style="color:#93C5FD">🎙️ Interviewer</span>'
+      : '<span style="color:#4ADE80">🧠 Interviewee</span>';
+  document.getElementById('sb-case-text').textContent = caseText;
+}
+
+function toggleCasePanel() {
+  casePanel = !casePanel;
+  document.getElementById('case-panel').classList.toggle('open', casePanel);
+  document.getElementById('stage').style.marginLeft = casePanel ? '320px' : '0';
+}
+
+function openCasePanel() {
+  casePanel = true;
+  document.getElementById('case-panel').classList.add('open');
+  document.getElementById('stage').style.marginLeft = '320px';
+}
+
+function showRoundEnd() {
+  document.getElementById('roundend-modal').style.display = 'flex';
+}
+
+function switchRoles() {
+  document.getElementById('roundend-modal').style.display = 'none';
+  roundCount++;
+  // Close case panel
+  casePanel = false;
+  document.getElementById('case-panel').classList.remove('open');
+  document.getElementById('stage').style.marginLeft = '0';
+  document.getElementById('sb-case-btn').style.display = 'none';
+  // Flip role
+  myRole = myRole === 'interviewer' ? 'interviewee' : 'interviewer';
+  showToast('Roles switched! ' + (myRole === 'interviewer' ? 'You are now Interviewer 🎙️' : 'You are now Interviewee 🧠'));
+
+  if (myRole === 'interviewee') {
+    document.getElementById('casetype-modal').style.display = 'flex';
+  } else {
+    setupSessionBar('interviewer', 'Waiting for candidate to pick case…');
+    showToast('Waiting for your partner to pick the case type…');
+  }
+}
+
+function confirmEndCall() {
+  document.getElementById('roundend-modal').style.display = 'none';
+  endCall();
+}
+
+// ── LISTEN FOR PARTNER ROLE SIGNALS ─────────────────────
+function setupSessionSignals() {
+  channel?.on('broadcast', { event: 'case-type-selected' }, ({ payload }) => {
+    if (payload.id === myId) return;
+    if (myRole === 'interviewer') {
+      loadCaseForInterviewer(payload.caseType);
+    }
+  });
+  channel?.on('broadcast', { event: 'role-selected' }, ({ payload }) => {
+    if (payload.id === myId) return;
+    // Partner chose a role — show it in toast
+    showToast('Partner chose: ' + payload.role);
+  });
+}
+
+// Show role modal when both are connected
+const _origOnTrack = RTCPeerConnection.prototype;
 
 </script>
 </body>
