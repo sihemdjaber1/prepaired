@@ -1184,19 +1184,8 @@ async function autoMatch(newProfile){
     }
     if(!best)return; // no compatible training partner yet
     // Create meet link
-    let meetLink='';
-    try{
-      const wr=await fetch('https://reugkvdvfhqpxvbmxlox.supabase.co/functions/v1/swift-processor',{
-        method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+SB_KEY,'apikey':SB_KEY},
-        body:JSON.stringify({})
-      });
-      const wd=await wr.json();
-      if(!wd.roomUrl)throw new Error('No roomUrl: '+JSON.stringify(wd));
-      meetLink=wd.roomUrl;
-    }catch(e){
-      console.error('Whereby error:',e);
-      return;
-    }
+    const roomId=Math.random().toString(36).slice(2,10)+'-'+Math.random().toString(36).slice(2,10);
+    const meetLink='https://prepaired.co/call.html?room='+roomId;
     const reason=`Same level, shared language & availability`;
     await sb.from('profiles').update({status:'matched',matched_with:best.user_id,meet_link:meetLink,matched_at:new Date().toISOString()}).eq('user_id',newProfile.user_id);
     await sb.from('profiles').update({status:'matched',matched_with:newProfile.user_id,meet_link:meetLink,matched_at:new Date().toISOString()}).eq('user_id',best.user_id);
@@ -1410,15 +1399,9 @@ async function runMatch(){
     // Create real Whereby room via Supabase Edge Function (bypasses CORS)
     let meetLink='';
     try{
-      const wr=await fetch('https://reugkvdvfhqpxvbmxlox.supabase.co/functions/v1/swift-processor',{
-        method:'POST',
-        headers:{'Content-Type':'application/json','Authorization':'Bearer '+SB_KEY,'apikey':SB_KEY},
-        body:JSON.stringify({})
-      });
-      const wd=await wr.json();
-      meetLink=wd.roomUrl||'';
-      console.log('Whereby room created:',meetLink);
-      if(!meetLink)throw new Error('No roomUrl: '+JSON.stringify(wd));
+      const roomId=Math.random().toString(36).slice(2,10)+'-'+Math.random().toString(36).slice(2,10);
+      meetLink='https://prepaired.co/call.html?room='+roomId;
+      console.log('Room created:',meetLink);
     } catch(e){
       console.error('Whereby via Edge Function failed:',e);
       const alpha='abcdefghijkmnopqrstuvwxyz';
