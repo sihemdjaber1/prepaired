@@ -44,7 +44,7 @@
   .ctrl-btn.end:hover{background:var(--pink2);}
 
   /* ── CHAT ── */
-  #chat-panel{position:fixed;right:0;top:0;bottom:0;width:300px;background:var(--card);border-left:1px solid var(--border);display:flex;flex-direction:column;transform:translateX(100%);transition:transform 0.25s ease;}
+  #chat-panel{position:fixed;right:0;top:0;bottom:0;width:340px;background:var(--card);border-left:1px solid var(--border);display:flex;flex-direction:column;transform:translateX(100%);transition:transform 0.25s ease;}
   #chat-panel.open{transform:translateX(0);}
   #chat-header{padding:1rem;border-bottom:1px solid var(--border);font-size:0.85rem;font-weight:600;display:flex;justify-content:space-between;align-items:center;}
   #chat-close{background:none;border:none;color:var(--g);cursor:pointer;font-size:1rem;}
@@ -475,7 +475,7 @@ function setupDataChannel(dc) {
       receiveBuffer = [];
       receiveSize = 0;
       // Show incoming file placeholder
-      progressEl = addFileMsg(receiveMeta.name, receiveMeta.size, false, null, true);
+      progressEl = addFileMsg(receiveMeta.name, receiveMeta.size, false);
     } else {
       // binary chunk
       receiveBuffer.push(e.data);
@@ -486,23 +486,10 @@ function setupDataChannel(dc) {
         if (bar) bar.style.width = pct + '%';
       }
       if (receiveSize >= receiveMeta.size) {
-        // Assemble file
         const blob = new Blob(receiveBuffer, { type: receiveMeta.type });
         const url = URL.createObjectURL(blob);
-        if (progressEl) {
-          // Replace progress with download link
-          const bar = progressEl.querySelector('.file-progress');
-          if (bar) bar.remove();
-          const link = document.createElement('a');
-          link.href = url;
-          link.download = receiveMeta.name;
-          link.textContent = 'Download';
-          progressEl.querySelector('.file-info').appendChild(link);
-        }
-        receiveBuffer = [];
-        receiveSize = 0;
-        receiveMeta = null;
-        progressEl = null;
+        if (progressEl) showFileInline(progressEl, receiveMeta.name, url);
+        receiveBuffer = []; receiveSize = 0; receiveMeta = null; progressEl = null;
       }
     }
   };
@@ -523,7 +510,7 @@ function sendFile(input) {
   }
 
   // Show outgoing file in chat
-  const msgEl = addFileMsg(file.name, file.size, true, null, true);
+  const msgEl = addFileMsg(file.name, file.size, true);
 
   // Send metadata
   dataChannel.send(JSON.stringify({ name: file.name, size: file.size, type: file.type }));
@@ -535,15 +522,8 @@ function sendFile(input) {
 
   function sendNextChunk() {
     if (offset >= file.size) {
-      // Done
-      const bar = msgEl.querySelector('.file-progress');
-      if (bar) bar.remove();
       const url = URL.createObjectURL(file);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = file.name;
-      link.textContent = 'Open';
-      msgEl.querySelector('.file-info').appendChild(link);
+      showFileInline(msgEl, file.name, url);
       input.value = '';
       return;
     }
@@ -568,20 +548,18 @@ function sendFile(input) {
   sendNextChunk();
 }
 
-function addFileMsg(name, size, mine, url, showProgress) {
+function addFileMsg(name, size, mine) {
   const msgs = document.getElementById('chat-msgs');
   const div = document.createElement('div');
   div.className = 'msg-file ' + (mine ? 'mine' : 'theirs');
   const ext = name.split('.').pop().toLowerCase();
-  const icon = ['pdf'].includes(ext) ? '📄' : ['jpg','jpeg','png','gif','webp'].includes(ext) ? '🖼️' : ['mp4','mov'].includes(ext) ? '🎬' : ['zip','rar'].includes(ext) ? '🗜️' : '📎';
+  const icon = ext === 'pdf' ? '📄' : ['jpg','jpeg','png','gif','webp'].includes(ext) ? '🖼️' : '📎';
   const sizeStr = size > 1024*1024 ? (size/1024/1024).toFixed(1)+' MB' : Math.round(size/1024)+' KB';
-  div.innerHTML = `
-    <div class="file-icon">${icon}</div>
+  div.innerHTML = `<div class="file-icon">${icon}</div>
     <div class="file-info">
       <div class="file-name">${name}</div>
       <div class="file-size">${sizeStr}</div>
-      ${url ? `<a href="${url}" download="${name}">Download</a>` : ''}
-      ${showProgress ? `<div class="file-progress"><div class="file-progress-bar"></div></div>` : ''}
+      <div class="file-progress"><div class="file-progress-bar"></div></div>
     </div>`;
   msgs.appendChild(div);
   msgs.scrollTop = msgs.scrollHeight;
@@ -592,6 +570,40 @@ function addFileMsg(name, size, mine, url, showProgress) {
     badge.textContent = unread;
   }
   return div;
+}
+
+function showFileInline(el, name, url) {
+  const ext = name.split('.').pop().toLowerCase();
+  const isImage = ['jpg','jpeg','png','gif','webp'].includes(ext);
+  const isPDF = ext === 'pdf';
+  const info = el.querySelector('.file-info');
+  // Remove progress bar and icon
+  const prog = el.querySelector('.file-progress');
+  if (prog) prog.remove();
+  const icon = el.querySelector('.file-icon');
+  if (icon) icon.remove();
+  if (isImage) {
+    const img = document.createElement('img');
+    img.src = url;
+    img.style.cssText = 'max-width:200px;max-height:200px;border-radius:8px;display:block;margin-top:0.4rem;cursor:zoom-in;';
+    img.onclick = () => window.open(url, '_blank');
+    info.appendChild(img);
+  } else if (isPDF) {
+    const iframe = document.createElement('iframe');
+    iframe.src = url + '#toolbar=0';
+    iframe.style.cssText = 'width:220px;height:280px;border-radius:8px;border:1px solid var(--border);margin-top:0.4rem;display:block;';
+    info.appendChild(iframe);
+  } else {
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = name;
+    a.textContent = '⬇ Download';
+    a.style.cssText = 'color:var(--pink);font-size:0.7rem;margin-top:0.3rem;display:block;';
+    a.onclick = (e) => e.stopPropagation();
+    info.appendChild(a);
+  }
+  const msgs = document.getElementById('chat-msgs');
+  msgs.scrollTop = msgs.scrollHeight;
 }
 
 </script>
