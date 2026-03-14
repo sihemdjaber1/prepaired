@@ -673,7 +673,8 @@ document.addEventListener('mouseup',()=>cur.style.transform='translate(-50%,-50%
 
 // ── SUPABASE ─────────────────────────────────────────────
 const SB_URL='https://reugkvdvfhqpxvbmxlox.supabase.co';
-const SB_KEY='sb_publishable_KBssRnU1sUVtR86VZEafdQ_-CBRiL_T';
+const RESEND_KEY='re_YOUR_KEY_HERE';
+  const SB_KEY='sb_publishable_KBssRnU1sUVtR86VZEafdQ_-CBRiL_T';
 const sb=supabase.createClient(SB_URL,SB_KEY);
 
 // ── EMAILJS ──────────────────────────────────────────────
@@ -1421,6 +1422,37 @@ async function runMatch(){
 }
 
 // ── ADMIN TABLE ──────────────────────────────────────────
+async function notifyPartnerChange(userId){
+  const{data:p}=await sb.from('profiles').select('*').eq('user_id',userId).single();
+  if(!p){alert('Profile not found');return;}
+  if(p.status!=='matched'){alert('This person is not matched.');return;}
+  if(!confirm(`Send "partner changed" email to ${p.name} (${p.email})?`))return;
+
+  const html=`<div style="font-family:sans-serif;max-width:520px;margin:0 auto;background:#0D0E12;color:#B0B4C8;padding:2rem;border-radius:12px;">
+<div style="font-size:1.4rem;font-weight:700;color:#E2E5F0;margin-bottom:0.3rem;">&#10022; Your training partner has been updated.</div>
+<div style="font-size:0.85rem;color:#5A5C68;margin-bottom:2rem;">Hi ${p.name}, a small change to your match.</div>
+<div style="background:#13141A;border:1px solid rgba(255,31,95,0.2);border-radius:10px;padding:1.5rem;margin-bottom:1.5rem;">
+  <div style="font-size:0.85rem;color:#B0B4C8;line-height:1.8;">Your training partner has been updated by our team. Your session time and video call link remain exactly the same — no action needed on your end.</div>
+</div>
+<a href="${p.meet_link||'#'}" style="display:block;background:#FF1F5F;color:#fff;text-align:center;padding:1rem 2rem;border-radius:8px;text-decoration:none;font-weight:700;font-size:0.95rem;margin-bottom:1.5rem;">Join Video Call →</a>
+<div style="margin-top:2rem;padding-top:1rem;border-top:1px solid rgba(255,255,255,0.05);font-size:0.65rem;color:#5A5C68;">Prepaired · prepaired.co · Always free</div>
+</div>`;
+
+  const res=await fetch('https://api.resend.com/emails',{
+    method:'POST',
+    headers:{'Authorization':'Bearer '+RESEND_KEY,'Content-Type':'application/json'},
+    body:JSON.stringify({
+      from:'Prepaired <prepaired@prepaired.co>',
+      to:[p.email],
+      subject:'✦ Your Prepaired training partner has been updated',
+      html
+    })
+  });
+  const data=await res.json();
+  if(res.ok){alert(`✓ Email sent to ${p.name}`);}
+  else{alert('Error: '+JSON.stringify(data));}
+}
+
 async function loadAdmin(){
   const{data:profiles}=await sb.from('profiles').select('*').order('created_at',{ascending:false});
   if(!profiles)return;
@@ -1439,6 +1471,7 @@ async function loadAdmin(){
       <td>${(p.langs||[]).join(', ')}</td>
       <td>${p.city}</td>
       <td><span class="bw ${p.status==='matched'?'bwm':'bww'}">${p.status}</span></td>
+      <td>${p.status==='matched'?`<button onclick="notifyPartnerChange('${p.user_id}')" style="background:transparent;border:1px solid rgba(255,31,95,0.3);color:var(--pink2);font-size:0.65rem;font-weight:600;padding:0.2rem 0.6rem;border-radius:4px;cursor:pointer;">📧 Partner changed</button>`:'—'}</td>
     </tr>`;
   });
 }
