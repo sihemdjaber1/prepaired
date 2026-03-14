@@ -81,6 +81,17 @@
   #toast.show{opacity:1;}
 
   #unread-badge{position:absolute;top:-4px;right:-4px;background:var(--pink);color:#fff;font-size:0.6rem;font-weight:700;width:16px;height:16px;border-radius:50%;display:flex;align-items:center;justify-content:center;display:none;}
+  .msg-file{display:flex;align-items:center;gap:0.6rem;padding:0.5rem 0.8rem;border-radius:10px;font-size:0.78rem;max-width:85%;}
+  .msg-file.mine{background:rgba(255,31,95,0.15);border:1px solid rgba(255,31,95,0.2);align-self:flex-end;}
+  .msg-file.theirs{background:#1a1b22;border:1px solid var(--border);align-self:flex-start;}
+  .msg-file .file-icon{font-size:1.3rem;flex-shrink:0;}
+  .msg-file .file-info{display:flex;flex-direction:column;gap:0.1rem;min-width:0;}
+  .msg-file .file-name{color:var(--w);font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:160px;}
+  .msg-file .file-size{color:var(--g);font-size:0.65rem;}
+  .msg-file a{color:var(--pink);font-size:0.7rem;text-decoration:none;white-space:nowrap;}
+  .msg-file a:hover{text-decoration:underline;}
+  .file-progress{height:3px;background:rgba(255,31,95,0.2);border-radius:2px;margin-top:0.3rem;overflow:hidden;}
+  .file-progress-bar{height:100%;background:var(--pink);border-radius:2px;transition:width 0.1s;width:0%;}
 </style>
 </head>
 <body>
@@ -148,6 +159,7 @@
   <div id="chat-msgs"></div>
   <div id="chat-input-wrap">
     <input id="chat-input" placeholder="Message…" onkeydown="if(event.key==='Enter')sendChat()">
+    <label id="file-btn" title="Attach file" style="width:34px;height:34px;border-radius:8px;background:#1a1b22;border:1px solid var(--border);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:0.9rem;flex-shrink:0;">📎<input type="file" id="file-input" style="display:none" onchange="sendFile(this)"></label>
     <button id="chat-send" onclick="sendChat()">↑</button>
   </div>
 </div>
@@ -308,6 +320,14 @@ function createPeerConnection(peerId) {
     if (!callStarted) { callStarted = true; startTimer(); }
   };
 
+  // Data channel for file transfer
+  if (isInitiator) {
+    const dc = pc.createDataChannel('files', { ordered: true });
+    setupDataChannel(dc);
+  } else {
+    pc.ondatachannel = (e) => setupDataChannel(e.channel);
+  }
+
   pc.onicecandidate = (e) => {
     if (e.candidate) {
       channel.send({ type: 'broadcast', event: 'signal', payload: {
@@ -436,6 +456,144 @@ function showToast(msg) {
   clearTimeout(toastTimer);
   toastTimer = setTimeout(() => t.classList.remove('show'), 2500);
 }
+
+// ── DATA CHANNEL (file transfer) ────────────────────────
+let dataChannel = null;
+let receiveBuffer = [];
+let receiveSize = 0;
+let receiveMeta = null;
+let progressEl = null;
+
+function setupDataChannel(dc) {
+  dataChannel = dc;
+  dc.binaryType = 'arraybuffer';
+
+  dc.onmessage = (e) => {
+    if (typeof e.data === 'string') {
+      // metadata message
+      receiveMeta = JSON.parse(e.data);
+      receiveBuffer = [];
+      receiveSize = 0;
+      // Show incoming file placeholder
+      progressEl = addFileMsg(receiveMeta.name, receiveMeta.size, false, null, true);
+    } else {
+      // binary chunk
+      receiveBuffer.push(e.data);
+      receiveSize += e.data.byteLength;
+      if (progressEl) {
+        const pct = Math.min(100, Math.round(receiveSize / receiveMeta.size * 100));
+        const bar = progressEl.querySelector('.file-progress-bar');
+        if (bar) bar.style.width = pct + '%';
+      }
+      if (receiveSize >= receiveMeta.size) {
+        // Assemble file
+        const blob = new Blob(receiveBuffer, { type: receiveMeta.type });
+        const url = URL.createObjectURL(blob);
+        if (progressEl) {
+          // Replace progress with download link
+          const bar = progressEl.querySelector('.file-progress');
+          if (bar) bar.remove();
+          const link = document.createElement('a');
+          link.href = url;
+          link.download = receiveMeta.name;
+          link.textContent = 'Download';
+          progressEl.querySelector('.file-info').appendChild(link);
+        }
+        receiveBuffer = [];
+        receiveSize = 0;
+        receiveMeta = null;
+        progressEl = null;
+      }
+    }
+  };
+}
+
+function sendFile(input) {
+  const file = input.files[0];
+  if (!file) return;
+  if (!dataChannel || dataChannel.readyState !== 'open') {
+    showToast('Connect to your partner first');
+    input.value = '';
+    return;
+  }
+  if (file.size > 20 * 1024 * 1024) {
+    showToast('Max file size: 20 MB');
+    input.value = '';
+    return;
+  }
+
+  // Show outgoing file in chat
+  const msgEl = addFileMsg(file.name, file.size, true, null, true);
+
+  // Send metadata
+  dataChannel.send(JSON.stringify({ name: file.name, size: file.size, type: file.type }));
+
+  // Send chunks
+  const CHUNK = 16384;
+  const reader = new FileReader();
+  let offset = 0;
+
+  function sendNextChunk() {
+    if (offset >= file.size) {
+      // Done
+      const bar = msgEl.querySelector('.file-progress');
+      if (bar) bar.remove();
+      const url = URL.createObjectURL(file);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = file.name;
+      link.textContent = 'Open';
+      msgEl.querySelector('.file-info').appendChild(link);
+      input.value = '';
+      return;
+    }
+    const slice = file.slice(offset, offset + CHUNK);
+    reader.readAsArrayBuffer(slice);
+  }
+
+  reader.onload = (e) => {
+    dataChannel.send(e.target.result);
+    offset += e.target.result.byteLength;
+    const pct = Math.min(100, Math.round(offset / file.size * 100));
+    const bar = msgEl.querySelector('.file-progress-bar');
+    if (bar) bar.style.width = pct + '%';
+    // Wait for buffer to drain if needed
+    if (dataChannel.bufferedAmount > 1024 * 1024) {
+      dataChannel.onbufferedamountlow = () => { dataChannel.onbufferedamountlow = null; sendNextChunk(); };
+      dataChannel.bufferedAmountLowThreshold = 512 * 1024;
+    } else {
+      sendNextChunk();
+    }
+  };
+  sendNextChunk();
+}
+
+function addFileMsg(name, size, mine, url, showProgress) {
+  const msgs = document.getElementById('chat-msgs');
+  const div = document.createElement('div');
+  div.className = 'msg-file ' + (mine ? 'mine' : 'theirs');
+  const ext = name.split('.').pop().toLowerCase();
+  const icon = ['pdf'].includes(ext) ? '📄' : ['jpg','jpeg','png','gif','webp'].includes(ext) ? '🖼️' : ['mp4','mov'].includes(ext) ? '🎬' : ['zip','rar'].includes(ext) ? '🗜️' : '📎';
+  const sizeStr = size > 1024*1024 ? (size/1024/1024).toFixed(1)+' MB' : Math.round(size/1024)+' KB';
+  div.innerHTML = `
+    <div class="file-icon">${icon}</div>
+    <div class="file-info">
+      <div class="file-name">${name}</div>
+      <div class="file-size">${sizeStr}</div>
+      ${url ? `<a href="${url}" download="${name}">Download</a>` : ''}
+      ${showProgress ? `<div class="file-progress"><div class="file-progress-bar"></div></div>` : ''}
+    </div>`;
+  msgs.appendChild(div);
+  msgs.scrollTop = msgs.scrollHeight;
+  if (!mine && !chatOpen) {
+    unread++;
+    const badge = document.getElementById('unread-badge');
+    badge.style.display = 'flex';
+    badge.textContent = unread;
+  }
+  return div;
+}
+
 </script>
 </body>
 </html>
