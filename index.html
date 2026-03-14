@@ -1521,15 +1521,56 @@ async function sendExternalMail(){
 <div style="margin-top:2rem;padding-top:1rem;border-top:1px solid rgba(255,255,255,0.05);font-size:0.65rem;color:#5A5C68;">Prepaired · prepaired.co · Always free</div>
 </div>`;
 
-  const res=await fetch('https://api.resend.com/emails',{
+  const res=await fetch('https://reugkvdvfhqpxvbmxlox.supabase.co/functions/v1/quick-endpoint',{
     method:'POST',
-    headers:{'Authorization':'Bearer '+RESEND_KEY,'Content-Type':'application/json'},
-    body:JSON.stringify({from:'Prepaired <prepaired@prepaired.co>',to:[email],subject:`✦ Your Prepaired match: ${partnerName}`,html})
+    headers:{'Content-Type':'application/json','Authorization':'Bearer '+SB_KEY,'apikey':SB_KEY},
+    body:JSON.stringify({mode:'notify_change',emailA:{to_email:email},notify_html:html})
   });
   const data=await res.json();
-  if(res.ok){
-    alert(`✓ Email sent to ${name} (${email})`);
+  if(data.ok){
+    alert('✓ Email sent to '+name+' ('+email+')');
     closeExternalModal();
+  } else {
+    alert('Error: '+JSON.stringify(data));
+  }
+}
+
+async function sendManualEmail(){
+  const to=document.getElementById('me-to').value.trim();
+  const name=document.getElementById('me-name').value.trim();
+  const partner=document.getElementById('me-partner').value.trim();
+  const level=document.getElementById('me-level').value.trim();
+  const firms=document.getElementById('me-firms').value.trim();
+  const slot=document.getElementById('me-slot').value.trim();
+  const link=document.getElementById('me-link').value.trim();
+
+  if(!to||!name||!partner||!link){alert('Fill in at least: email, name, partner name and video link.');return;}
+
+  const html=`<div style="font-family:sans-serif;max-width:520px;margin:0 auto;background:#0D0E12;color:#B0B4C8;padding:2rem;border-radius:12px;">
+<div style="font-size:1.4rem;font-weight:700;color:#E2E5F0;margin-bottom:0.3rem;">&#10022; Your Prepaired match is ready.</div>
+<div style="font-size:0.85rem;color:#5A5C68;margin-bottom:2rem;">Hi ${name}, here's your training partner.</div>
+<div style="background:#13141A;border:1px solid rgba(255,31,95,0.2);border-radius:10px;padding:1.5rem;margin-bottom:1.5rem;">
+  <div style="font-size:0.6rem;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;color:#FF1F5F;margin-bottom:0.6rem;">Your training partner</div>
+  <div style="font-size:1.3rem;font-weight:700;color:#E2E5F0;margin-bottom:0.4rem;">${partner}</div>
+  <div style="font-size:0.82rem;color:#5A5C68;line-height:1.7;">${level}${firms?'<br>'+firms:''}</div>
+</div>
+${slot?`<div style="background:#13141A;border:1px solid rgba(255,31,95,0.2);border-radius:10px;padding:1.5rem;margin-bottom:1.5rem;">
+  <div style="font-size:0.6rem;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;color:#FF1F5F;margin-bottom:0.6rem;">Suggested session</div>
+  <div style="font-size:1rem;color:#E2E5F0;">${slot}</div>
+</div>`:''}
+<a href="${link}" style="display:block;background:#FF1F5F;color:#fff;text-align:center;padding:1rem 2rem;border-radius:8px;text-decoration:none;font-weight:700;font-size:0.95rem;margin-bottom:1.5rem;">Join Video Call →</a>
+<div style="margin-top:2rem;padding-top:1rem;border-top:1px solid rgba(255,255,255,0.05);font-size:0.65rem;color:#5A5C68;">Prepaired · prepaired.co · Always free</div>
+</div>`;
+
+  const res=await fetch('https://reugkvdvfhqpxvbmxlox.supabase.co/functions/v1/quick-endpoint',{
+    method:'POST',
+    headers:{'Content-Type':'application/json','Authorization':'Bearer '+SB_KEY,'apikey':SB_KEY},
+    body:JSON.stringify({mode:'notify_change',emailA:{to_email:to},notify_html:html})
+  });
+  const data=await res.json();
+  if(data.ok){
+    alert('✓ Email sent to '+to);
+    ['me-to','me-name','me-partner','me-level','me-firms','me-slot','me-link'].forEach(id=>document.getElementById(id).value='');
   } else {
     alert('Error: '+JSON.stringify(data));
   }
