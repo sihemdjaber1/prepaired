@@ -321,10 +321,14 @@ const ICE_SERVERS = {
 };
 
 // ── LOBBY ────────────────────────────────────────────────
-const nameInput = document.getElementById('lobby-name');
+// Make join button always enabled — just require name on click
 const joinBtn = document.getElementById('join-btn');
+const nameInput = document.getElementById('lobby-name');
+joinBtn.disabled = false;
+
 nameInput.addEventListener('input', () => {
   joinBtn.disabled = nameInput.value.trim().length < 1;
+  if (nameInput.value.trim().length >= 1) joinBtn.disabled = false;
 });
 
 // Pre-fill name from URL
