@@ -658,10 +658,46 @@ tr:hover td{background:rgba(255,31,95,0.03);}
   <div class="aa">
     <button class="ab2" onclick="runMatch()">✦ Run Matching</button>
     <button class="ab2 o" onclick="loadAdmin()">↺ Refresh</button>
+    <button class="ab2 o" onclick="showExternalMailModal()">📧 Mail external partner</button>
     <button class="ab2 o" onclick="clrAll()">Clear all</button>
   </div>
+
+  <!-- External mail modal -->
+  <div id="ext-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:9999;display:none;align-items:center;justify-content:center;">
+    <div style="background:#13141A;border:1px solid rgba(255,31,95,0.2);border-radius:14px;padding:2rem;width:480px;max-width:90vw;">
+      <div style="font-size:1rem;font-weight:700;color:#E2E5F0;margin-bottom:1.5rem;">📧 Send match email to external partner</div>
+      <div style="display:flex;flex-direction:column;gap:0.9rem;">
+        <div>
+          <label style="font-size:0.65rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:#FF1F5F;display:block;margin-bottom:0.4rem;">Their name</label>
+          <input id="ext-name" placeholder="e.g. Marie Dupont" style="width:100%;background:#0D0E12;border:1px solid rgba(255,255,255,0.08);border-radius:8px;padding:0.6rem 0.8rem;color:#E2E5F0;font-size:0.88rem;box-sizing:border-box;">
+        </div>
+        <div>
+          <label style="font-size:0.65rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:#FF1F5F;display:block;margin-bottom:0.4rem;">Their email</label>
+          <input id="ext-email" type="email" placeholder="marie@email.com" style="width:100%;background:#0D0E12;border:1px solid rgba(255,255,255,0.08);border-radius:8px;padding:0.6rem 0.8rem;color:#E2E5F0;font-size:0.88rem;box-sizing:border-box;">
+        </div>
+        <div>
+          <label style="font-size:0.65rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:#FF1F5F;display:block;margin-bottom:0.4rem;">Matched with (Prepaired user)</label>
+          <select id="ext-partner" style="width:100%;background:#0D0E12;border:1px solid rgba(255,255,255,0.08);border-radius:8px;padding:0.6rem 0.8rem;color:#E2E5F0;font-size:0.88rem;box-sizing:border-box;">
+            <option value="">Select matched user...</option>
+          </select>
+        </div>
+        <div>
+          <label style="font-size:0.65rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:#FF1F5F;display:block;margin-bottom:0.4rem;">Video call link</label>
+          <input id="ext-link" placeholder="https://whereby.com/..." style="width:100%;background:#0D0E12;border:1px solid rgba(255,255,255,0.08);border-radius:8px;padding:0.6rem 0.8rem;color:#E2E5F0;font-size:0.88rem;box-sizing:border-box;">
+        </div>
+        <div>
+          <label style="font-size:0.65rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:#FF1F5F;display:block;margin-bottom:0.4rem;">Session time</label>
+          <input id="ext-slot" placeholder="e.g. Wednesday at 7pm (CET)" style="width:100%;background:#0D0E12;border:1px solid rgba(255,255,255,0.08);border-radius:8px;padding:0.6rem 0.8rem;color:#E2E5F0;font-size:0.88rem;box-sizing:border-box;">
+        </div>
+      </div>
+      <div style="display:flex;gap:0.8rem;margin-top:1.5rem;">
+        <button onclick="sendExternalMail()" style="flex:1;background:#FF1F5F;color:#fff;border:none;border-radius:8px;padding:0.7rem;font-weight:700;font-size:0.85rem;cursor:pointer;">Send email</button>
+        <button onclick="closeExternalModal()" style="flex:1;background:transparent;color:#B0B4C8;border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:0.7rem;font-size:0.85rem;cursor:pointer;">Cancel</button>
+      </div>
+    </div>
+  </div>
   <div class="mb" id="mb"><div class="mbt">Latest matches</div><div id="mpd"></div></div>
-  <div class="tw"><table><thead><tr><th>Name</th><th>Email</th><th>Track</th><th>Level</th><th>Firms</th><th>Languages</th><th>City</th><th>Status</th></tr></thead><tbody id="ptb"></tbody></table></div>
+  <div class="tw"><table><thead><tr><th>Name</th><th>Email</th><th>Track</th><th>Level</th><th>Firms</th><th>Languages</th><th>City</th><th>Status</th><th>Action</th></tr></thead><tbody id="ptb"></tbody></table></div>
   <div style="height:4rem"></div>
 </div>
 <script>
@@ -1422,6 +1458,83 @@ async function runMatch(){
 }
 
 // ── ADMIN TABLE ──────────────────────────────────────────
+function showExternalMailModal(){
+  const modal=document.getElementById('ext-modal');
+  modal.style.display='flex';
+  // Populate partner dropdown with matched users
+  sb.from('profiles').select('user_id,name,email,meet_link,level,firms,langs,city').eq('status','matched').then(({data})=>{
+    const sel=document.getElementById('ext-partner');
+    sel.innerHTML='<option value="">Select matched user...</option>';
+    (data||[]).forEach(p=>{
+      const o=document.createElement('option');
+      o.value=p.user_id;
+      o.textContent=`${p.name} (${p.email})`;
+      o.dataset.meet=p.meet_link||'';
+      o.dataset.level=p.level||'';
+      o.dataset.firms=(p.firms||[]).join(', ');
+      o.dataset.langs=(p.langs||[]).join(', ');
+      o.dataset.city=p.city||'';
+      o.dataset.name=p.name||'';
+      sel.appendChild(o);
+    });
+  });
+  // Auto-fill meet link when partner selected
+  document.getElementById('ext-partner').onchange=function(){
+    const opt=this.options[this.selectedIndex];
+    if(opt.dataset.meet)document.getElementById('ext-link').value=opt.dataset.meet;
+  };
+}
+
+function closeExternalModal(){
+  document.getElementById('ext-modal').style.display='none';
+}
+
+async function sendExternalMail(){
+  const name=document.getElementById('ext-name').value.trim();
+  const email=document.getElementById('ext-email').value.trim();
+  const partnerSel=document.getElementById('ext-partner');
+  const opt=partnerSel.options[partnerSel.selectedIndex];
+  const meetLink=document.getElementById('ext-link').value.trim();
+  const slot=document.getElementById('ext-slot').value.trim();
+
+  if(!name||!email||!opt.value||!meetLink){alert('Please fill all fields.');return;}
+
+  const partnerName=opt.dataset.name;
+  const partnerLevel=opt.dataset.level;
+  const partnerFirms=opt.dataset.firms;
+  const partnerLangs=opt.dataset.langs;
+  const partnerCity=opt.dataset.city;
+
+  const html=`<div style="font-family:sans-serif;max-width:520px;margin:0 auto;background:#0D0E12;color:#B0B4C8;padding:2rem;border-radius:12px;">
+<div style="font-size:1.4rem;font-weight:700;color:#E2E5F0;margin-bottom:0.3rem;">&#10022; Your Prepaired match is ready.</div>
+<div style="font-size:0.85rem;color:#5A5C68;margin-bottom:2rem;">Hi ${name}, here's your training partner.</div>
+<div style="background:#13141A;border:1px solid rgba(255,31,95,0.2);border-radius:10px;padding:1.5rem;margin-bottom:1.5rem;">
+  <div style="font-size:0.6rem;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;color:#FF1F5F;margin-bottom:0.6rem;">Your training partner</div>
+  <div style="font-size:1.3rem;font-weight:700;color:#E2E5F0;margin-bottom:0.4rem;">${partnerName}</div>
+  <div style="font-size:0.82rem;color:#5A5C68;line-height:1.7;">${partnerLevel} · ${partnerCity}<br>${partnerFirms}<br>${partnerLangs}</div>
+</div>
+<div style="background:#13141A;border:1px solid rgba(255,31,95,0.2);border-radius:10px;padding:1.5rem;margin-bottom:1.5rem;">
+  <div style="font-size:0.6rem;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;color:#FF1F5F;margin-bottom:0.6rem;">Suggested session</div>
+  <div style="font-size:1rem;color:#E2E5F0;">${slot||'Coordinate directly with your partner'}</div>
+</div>
+<a href="${meetLink}" style="display:block;background:#FF1F5F;color:#fff;text-align:center;padding:1rem 2rem;border-radius:8px;text-decoration:none;font-weight:700;font-size:0.95rem;margin-bottom:1.5rem;">Join Video Call →</a>
+<div style="margin-top:2rem;padding-top:1rem;border-top:1px solid rgba(255,255,255,0.05);font-size:0.65rem;color:#5A5C68;">Prepaired · prepaired.co · Always free</div>
+</div>`;
+
+  const res=await fetch('https://api.resend.com/emails',{
+    method:'POST',
+    headers:{'Authorization':'Bearer '+RESEND_KEY,'Content-Type':'application/json'},
+    body:JSON.stringify({from:'Prepaired <prepaired@prepaired.co>',to:[email],subject:`✦ Your Prepaired match: ${partnerName}`,html})
+  });
+  const data=await res.json();
+  if(res.ok){
+    alert(`✓ Email sent to ${name} (${email})`);
+    closeExternalModal();
+  } else {
+    alert('Error: '+JSON.stringify(data));
+  }
+}
+
 async function notifyPartnerChange(userId){
   const{data:p}=await sb.from('profiles').select('*').eq('user_id',userId).single();
   if(!p){alert('Profile not found');return;}
@@ -1438,18 +1551,31 @@ async function notifyPartnerChange(userId){
 <div style="margin-top:2rem;padding-top:1rem;border-top:1px solid rgba(255,255,255,0.05);font-size:0.65rem;color:#5A5C68;">Prepaired · prepaired.co · Always free</div>
 </div>`;
 
-  const res=await fetch('https://api.resend.com/emails',{
+  // Must go via Edge Function — direct Resend calls blocked by CORS
+  const res=await fetch('https://reugkvdvfhqpxvbmxlox.supabase.co/functions/v1/quick-endpoint',{
     method:'POST',
-    headers:{'Authorization':'Bearer '+RESEND_KEY,'Content-Type':'application/json'},
+    headers:{'Content-Type':'application/json','Authorization':'Bearer '+SB_KEY,'apikey':SB_KEY},
     body:JSON.stringify({
-      from:'Prepaired <prepaired@prepaired.co>',
-      to:[p.email],
-      subject:'✦ Your Prepaired training partner has been updated',
-      html
+      emailA:{
+        to_email:p.email,
+        user_name:p.name,
+        partner_name:'your new partner',
+        partner_level:'',
+        partner_firms:'',
+        partner_langs:'',
+        partner_city:'',
+        shared_slot:'Same as before',
+        meet_link:p.meet_link||'',
+        match_reason:'Partner updated by team',
+        match_score:''
+      },
+      emailB:null,
+      mode:'notify_change',
+      notify_html:html
     })
   });
   const data=await res.json();
-  if(res.ok){alert(`✓ Email sent to ${p.name}`);}
+  if(res.ok){alert(\`✓ Email sent to \${p.name}\`);}
   else{alert('Error: '+JSON.stringify(data));}
 }
 
