@@ -1575,7 +1575,7 @@ async function notifyPartnerChange(userId){
     })
   });
   const data=await res.json();
-  if(res.ok){alert(\`✓ Email sent to \${p.name}\`);}
+  if(res.ok){alert('✓ Email sent to '+p.name);}
   else{alert('Error: '+JSON.stringify(data));}
 }
 
