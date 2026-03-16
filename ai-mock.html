@@ -1,0 +1,811 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Prepaired · AI Mock Interview</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+:root{
+  --bg:#080A0E;
+  --surface:#0F1117;
+  --surface2:#161922;
+  --pink:#FF1F5F;
+  --pink2:#E8185A;
+  --pink-glow:rgba(255,31,95,0.15);
+  --w:#EEF0F8;
+  --w2:#B8BDD0;
+  --g:#5A5E72;
+  --border:rgba(255,255,255,0.06);
+  --border-pink:rgba(255,31,95,0.2);
+}
+body{
+  background:var(--bg);
+  color:var(--w);
+  font-family:'DM Sans',sans-serif;
+  min-height:100dvh;
+  display:flex;
+  flex-direction:column;
+  overflow:hidden;
+}
+
+/* ── GRAIN ── */
+body::before{
+  content:'';position:fixed;inset:0;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.035'/%3E%3C/svg%3E");
+  pointer-events:none;z-index:0;opacity:0.4;
+}
+
+/* ── HEADER ── */
+#header{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:1rem 2rem;border-bottom:1px solid var(--border);
+  flex-shrink:0;position:relative;z-index:10;
+}
+.logo{font-family:'DM Serif Display',serif;font-size:1.1rem;color:var(--w);letter-spacing:-0.01em;}
+.logo em{color:var(--pink);font-style:normal;}
+#back-btn{font-size:0.75rem;color:var(--g);text-decoration:none;display:flex;align-items:center;gap:0.4rem;transition:color 0.2s;}
+#back-btn:hover{color:var(--w2);}
+#session-info{font-size:0.72rem;color:var(--g);text-align:right;line-height:1.6;}
+#session-info span{color:var(--w2);font-weight:500;}
+
+/* ── SETUP SCREEN ── */
+#setup{
+  flex:1;display:flex;align-items:center;justify-content:center;
+  padding:2rem;position:relative;z-index:1;
+}
+.setup-card{
+  width:520px;max-width:100%;
+}
+.setup-eyebrow{
+  font-size:0.65rem;font-weight:600;letter-spacing:0.18em;text-transform:uppercase;
+  color:var(--pink);margin-bottom:1.2rem;display:flex;align-items:center;gap:0.5rem;
+}
+.setup-eyebrow::before{content:'';width:20px;height:1px;background:var(--pink);}
+.setup-title{
+  font-family:'DM Serif Display',serif;font-size:2.8rem;line-height:1.1;
+  color:var(--w);margin-bottom:0.5rem;letter-spacing:-0.02em;
+}
+.setup-title em{color:var(--pink);font-style:italic;}
+.setup-sub{font-size:0.9rem;color:var(--w2);margin-bottom:2.5rem;line-height:1.6;font-weight:300;}
+
+.case-grid{display:grid;grid-template-columns:1fr 1fr;gap:0.6rem;margin-bottom:1.8rem;}
+.case-card{
+  padding:1rem;border-radius:10px;border:1px solid var(--border);
+  background:var(--surface);cursor:pointer;transition:all 0.2s;text-align:left;
+}
+.case-card:hover{border-color:var(--border-pink);background:var(--surface2);}
+.case-card.selected{border-color:var(--pink);background:rgba(255,31,95,0.06);}
+.case-card .cc-icon{font-size:1.3rem;margin-bottom:0.5rem;}
+.case-card .cc-name{font-size:0.82rem;font-weight:600;color:var(--w);margin-bottom:0.2rem;}
+.case-card .cc-desc{font-size:0.68rem;color:var(--g);line-height:1.5;}
+
+.difficulty-row{display:flex;gap:0.5rem;margin-bottom:1.8rem;}
+.diff-btn{
+  flex:1;padding:0.6rem;border-radius:8px;border:1px solid var(--border);
+  background:var(--surface);color:var(--g);font-size:0.75rem;font-weight:600;
+  cursor:pointer;transition:all 0.2s;font-family:inherit;
+}
+.diff-btn:hover{border-color:var(--border-pink);color:var(--w2);}
+.diff-btn.selected{border-color:var(--pink);background:rgba(255,31,95,0.06);color:var(--pink);}
+
+.start-btn{
+  width:100%;padding:1rem;border-radius:12px;
+  background:var(--pink);color:#fff;border:none;
+  font-size:0.95rem;font-weight:600;cursor:pointer;
+  font-family:inherit;transition:all 0.2s;
+  display:flex;align-items:center;justify-content:center;gap:0.6rem;
+}
+.start-btn:hover{background:var(--pink2);transform:translateY(-1px);box-shadow:0 8px 24px rgba(255,31,95,0.25);}
+.start-btn:disabled{opacity:0.4;cursor:not-allowed;transform:none;box-shadow:none;}
+
+/* ── INTERVIEW SCREEN ── */
+#interview{
+  flex:1;display:none;flex-direction:column;position:relative;z-index:1;
+  overflow:hidden;
+}
+
+/* AI avatar area */
+#ai-zone{
+  flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  padding:2rem;min-height:0;
+  background:radial-gradient(ellipse 60% 50% at 50% 60%, rgba(255,31,95,0.04) 0%, transparent 70%);
+}
+
+/* Orb */
+#orb-wrap{position:relative;margin-bottom:2rem;}
+#orb{
+  width:96px;height:96px;border-radius:50%;
+  background:radial-gradient(circle at 35% 35%, rgba(255,60,100,0.8), rgba(180,10,50,0.9));
+  box-shadow:0 0 0 0 rgba(255,31,95,0.4);
+  transition:all 0.3s;
+  position:relative;z-index:1;
+}
+#orb.speaking{
+  animation:orb-pulse 1.2s ease-in-out infinite;
+  box-shadow:0 0 30px rgba(255,31,95,0.4), 0 0 60px rgba(255,31,95,0.2);
+}
+#orb.listening{
+  background:radial-gradient(circle at 35% 35%, rgba(74,222,128,0.8), rgba(20,120,60,0.9));
+  box-shadow:0 0 30px rgba(74,222,128,0.4);
+  animation:orb-listen 2s ease-in-out infinite;
+}
+#orb.thinking{
+  background:radial-gradient(circle at 35% 35%, rgba(147,197,253,0.8), rgba(30,60,180,0.9));
+  animation:orb-think 1.5s linear infinite;
+}
+@keyframes orb-pulse{
+  0%,100%{transform:scale(1);}
+  50%{transform:scale(1.08);}
+}
+@keyframes orb-listen{
+  0%,100%{transform:scale(1);}
+  50%{transform:scale(1.04);}
+}
+@keyframes orb-think{
+  0%{transform:rotate(0deg);}
+  100%{transform:rotate(360deg);}
+}
+#orb-rings{
+  position:absolute;inset:-16px;border-radius:50%;
+  border:1px solid rgba(255,31,95,0.15);
+  animation:ring-expand 2.5s ease-out infinite;
+}
+#orb-rings2{
+  position:absolute;inset:-32px;border-radius:50%;
+  border:1px solid rgba(255,31,95,0.08);
+  animation:ring-expand 2.5s ease-out infinite 0.8s;
+}
+@keyframes ring-expand{
+  0%{transform:scale(0.8);opacity:1;}
+  100%{transform:scale(1.2);opacity:0;}
+}
+
+#ai-label{font-size:0.7rem;font-weight:600;letter-spacing:0.12em;text-transform:uppercase;color:var(--g);margin-bottom:1.5rem;}
+
+/* Transcript bubble */
+#transcript-wrap{
+  width:100%;max-width:640px;
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:14px;overflow:hidden;
+}
+#transcript-inner{
+  max-height:200px;overflow-y:auto;
+  padding:1.2rem;
+  display:flex;flex-direction:column;gap:0.8rem;
+  scroll-behavior:smooth;
+}
+.msg-ai,.msg-user{font-size:0.84rem;line-height:1.7;max-width:90%;}
+.msg-ai{color:var(--w2);}
+.msg-ai .msg-label{font-size:0.6rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--pink);margin-bottom:0.3rem;}
+.msg-user{align-self:flex-end;text-align:right;}
+.msg-user .msg-label{font-size:0.6rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:#4ADE80;margin-bottom:0.3rem;}
+.msg-user .msg-text{color:var(--w);}
+
+/* Status bar */
+#status-bar{
+  padding:0.6rem 1.2rem;border-top:1px solid var(--border);
+  display:flex;align-items:center;gap:0.6rem;
+  font-size:0.72rem;color:var(--g);
+  background:var(--surface);
+}
+#status-dot{width:6px;height:6px;border-radius:50%;background:var(--g);flex-shrink:0;transition:background 0.3s;}
+#status-dot.active{background:#4ADE80;box-shadow:0 0 8px rgba(74,222,128,0.5);}
+#status-dot.speaking{background:var(--pink);box-shadow:0 0 8px rgba(255,31,95,0.5);}
+
+/* Controls */
+#controls{
+  display:flex;align-items:center;justify-content:center;gap:1rem;
+  padding:1.2rem 2rem;border-top:1px solid var(--border);
+  flex-shrink:0;background:var(--surface);
+}
+.ctrl{
+  display:flex;flex-direction:column;align-items:center;gap:0.3rem;
+}
+.ctrl-btn2{
+  width:54px;height:54px;border-radius:50%;
+  border:1px solid var(--border);background:var(--surface2);
+  color:var(--w2);font-size:1.1rem;cursor:pointer;
+  transition:all 0.2s;display:flex;align-items:center;justify-content:center;
+}
+.ctrl-btn2:hover{border-color:var(--border-pink);background:var(--surface);}
+.ctrl-btn2.active{background:rgba(255,31,95,0.1);border-color:var(--pink);color:var(--pink);}
+.ctrl-label{font-size:0.6rem;color:var(--g);text-transform:uppercase;letter-spacing:0.08em;}
+
+#mic-btn{width:68px;height:68px;font-size:1.3rem;}
+#mic-btn.recording{
+  background:rgba(74,222,128,0.12);border-color:#4ADE80;color:#4ADE80;
+  box-shadow:0 0 20px rgba(74,222,128,0.2);
+  animation:mic-pulse 1.5s ease-in-out infinite;
+}
+@keyframes mic-pulse{
+  0%,100%{box-shadow:0 0 20px rgba(74,222,128,0.2);}
+  50%{box-shadow:0 0 30px rgba(74,222,128,0.4);}
+}
+
+#end-btn{background:rgba(255,31,95,0.1);border-color:var(--border-pink);color:var(--pink);}
+#end-btn:hover{background:var(--pink);color:#fff;}
+
+/* ── FEEDBACK SCREEN ── */
+#feedback{
+  flex:1;display:none;flex-direction:column;overflow-y:auto;
+  padding:2rem;position:relative;z-index:1;
+  align-items:center;
+}
+.feedback-card{width:640px;max-width:100%;}
+.fb-eyebrow{font-size:0.65rem;font-weight:600;letter-spacing:0.18em;text-transform:uppercase;color:var(--pink);margin-bottom:1rem;}
+.fb-title{font-family:'DM Serif Display',serif;font-size:2.2rem;color:var(--w);margin-bottom:0.4rem;letter-spacing:-0.02em;}
+.fb-sub{font-size:0.85rem;color:var(--w2);margin-bottom:2rem;font-weight:300;}
+
+.score-ring-wrap{display:flex;align-items:center;gap:2rem;margin-bottom:2rem;padding:1.5rem;background:var(--surface);border:1px solid var(--border);border-radius:14px;}
+.score-ring{position:relative;width:90px;height:90px;flex-shrink:0;}
+.score-ring svg{transform:rotate(-90deg);}
+.score-ring-num{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:'DM Serif Display',serif;font-size:1.6rem;color:var(--w);}
+.score-details{flex:1;}
+.score-label{font-size:0.65rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--g);margin-bottom:0.3rem;}
+.score-verdict{font-size:1rem;font-weight:600;color:var(--w);margin-bottom:0.2rem;}
+.score-note{font-size:0.78rem;color:var(--w2);line-height:1.6;}
+
+.fb-section{margin-bottom:1.5rem;}
+.fb-section-title{font-size:0.65rem;font-weight:700;letter-spacing:0.13em;text-transform:uppercase;margin-bottom:0.8rem;display:flex;align-items:center;gap:0.5rem;}
+.fb-section-title.green{color:#4ADE80;}
+.fb-section-title.yellow{color:#FCD34D;}
+.fb-section-title.blue{color:#93C5FD;}
+
+.fb-item{
+  padding:0.8rem 1rem;border-radius:8px;margin-bottom:0.5rem;
+  font-size:0.82rem;line-height:1.6;
+}
+.fb-item.green{background:rgba(74,222,128,0.06);border:1px solid rgba(74,222,128,0.15);color:var(--w2);}
+.fb-item.yellow{background:rgba(252,211,77,0.06);border:1px solid rgba(252,211,77,0.15);color:var(--w2);}
+.fb-item.blue{background:rgba(147,197,253,0.06);border:1px solid rgba(147,197,253,0.15);color:var(--w2);}
+
+.fb-actions{display:flex;gap:0.8rem;margin-top:2rem;}
+.fb-btn{flex:1;padding:0.9rem;border-radius:10px;font-size:0.85rem;font-weight:600;cursor:pointer;font-family:inherit;transition:all 0.2s;border:1px solid var(--border);background:var(--surface);color:var(--w2);}
+.fb-btn:hover{border-color:var(--border-pink);color:var(--w);}
+.fb-btn.primary{background:var(--pink);border-color:var(--pink);color:#fff;}
+.fb-btn.primary:hover{background:var(--pink2);}
+
+/* ── LOADING DOTS ── */
+.dots{display:inline-flex;gap:3px;align-items:center;}
+.dots span{width:4px;height:4px;border-radius:50%;background:var(--g);animation:dot-bounce 1.2s ease-in-out infinite;}
+.dots span:nth-child(2){animation-delay:0.2s;}
+.dots span:nth-child(3){animation-delay:0.4s;}
+@keyframes dot-bounce{0%,80%,100%{transform:translateY(0);}40%{transform:translateY(-5px);}}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div id="header">
+  <a href="index.html" id="back-btn">← Back</a>
+  <div class="logo">• <em>Prep</em>aired AI</div>
+  <div id="session-info" style="opacity:0;">
+    <div>Case: <span id="info-case">—</span></div>
+    <div>Level: <span id="info-level">—</span></div>
+  </div>
+</div>
+
+<!-- SETUP SCREEN -->
+<div id="setup">
+  <div class="setup-card">
+    <div class="setup-eyebrow">Solo Practice</div>
+    <div class="setup-title">Train with an<br><em>AI interviewer.</em></div>
+    <div class="setup-sub">Pick a case type and level. The AI runs the interview — you talk, it responds in real time.</div>
+
+    <div class="case-grid" id="case-grid">
+      <button class="case-card" data-type="M&A" onclick="selectCase(this)">
+        <div class="cc-icon">🤝</div>
+        <div class="cc-name">M&A</div>
+        <div class="cc-desc">Acquisition strategy, synergies, valuation</div>
+      </button>
+      <button class="case-card" data-type="Profitability" onclick="selectCase(this)">
+        <div class="cc-icon">📉</div>
+        <div class="cc-name">Profitability</div>
+        <div class="cc-desc">Margin analysis, cost & revenue diagnosis</div>
+      </button>
+      <button class="case-card" data-type="Market Entry" onclick="selectCase(this)">
+        <div class="cc-icon">🌍</div>
+        <div class="cc-name">Market Entry</div>
+        <div class="cc-desc">Attractiveness, entry mode, go-to-market</div>
+      </button>
+      <button class="case-card" data-type="Market Sizing" onclick="selectCase(this)">
+        <div class="cc-icon">📊</div>
+        <div class="cc-name">Market Sizing</div>
+        <div class="cc-desc">Structured estimation, assumptions, sanity</div>
+      </button>
+      <button class="case-card" data-type="Operations" onclick="selectCase(this)">
+        <div class="cc-icon">⚙️</div>
+        <div class="cc-name">Operations</div>
+        <div class="cc-desc">Supply chain, process, root cause</div>
+      </button>
+      <button class="case-card" data-type="Pricing" onclick="selectCase(this)">
+        <div class="cc-icon">💰</div>
+        <div class="cc-name">Pricing</div>
+        <div class="cc-desc">Value-based pricing, competitive positioning</div>
+      </button>
+      <button class="case-card" data-type="Growth Strategy" onclick="selectCase(this)">
+        <div class="cc-icon">🚀</div>
+        <div class="cc-name">Growth Strategy</div>
+        <div class="cc-desc">Scaling, new markets, revenue vectors</div>
+      </button>
+      <button class="case-card" data-type="Random" onclick="selectCase(this)">
+        <div class="cc-icon">🎲</div>
+        <div class="cc-name">Surprise me</div>
+        <div class="cc-desc">Random case — stay on your toes</div>
+      </button>
+    </div>
+
+    <div class="difficulty-row">
+      <button class="diff-btn" data-level="Beginner" onclick="selectLevel(this)">Beginner</button>
+      <button class="diff-btn selected" data-level="Intermediate" onclick="selectLevel(this)">Intermediate</button>
+      <button class="diff-btn" data-level="Advanced" onclick="selectLevel(this)">Advanced</button>
+    </div>
+
+    <button class="start-btn" id="start-btn" onclick="startInterview()" disabled>
+      <span>Start interview</span> <span>→</span>
+    </button>
+  </div>
+</div>
+
+<!-- INTERVIEW SCREEN -->
+<div id="interview">
+  <div id="ai-zone">
+    <div id="orb-wrap">
+      <div id="orb-rings2"></div>
+      <div id="orb-rings"></div>
+      <div id="orb"></div>
+    </div>
+    <div id="ai-label">AI Interviewer</div>
+    <div id="transcript-wrap">
+      <div id="transcript-inner"></div>
+    </div>
+  </div>
+
+  <div id="status-bar">
+    <div id="status-dot"></div>
+    <span id="status-text">Initialising…</span>
+  </div>
+
+  <div id="controls">
+    <div class="ctrl">
+      <button class="ctrl-btn2" id="hint-btn" onclick="requestHint()" title="Get a hint">💡</button>
+      <span class="ctrl-label">Hint</span>
+    </div>
+    <div class="ctrl">
+      <button class="ctrl-btn2 active" id="mic-btn" onclick="toggleMic()" title="Hold to speak">🎤</button>
+      <span class="ctrl-label" id="mic-label">Tap to speak</span>
+    </div>
+    <div class="ctrl">
+      <button class="ctrl-btn2" id="end-btn" onclick="endInterview()">✕</button>
+      <span class="ctrl-label">End</span>
+    </div>
+  </div>
+</div>
+
+<!-- FEEDBACK SCREEN -->
+<div id="feedback">
+  <div class="feedback-card">
+    <div class="fb-eyebrow">Session complete</div>
+    <div class="fb-title">Your feedback.</div>
+    <div class="fb-sub" id="fb-sub">Here's how you did.</div>
+
+    <div class="score-ring-wrap">
+      <div class="score-ring">
+        <svg width="90" height="90" viewBox="0 0 90 90">
+          <circle cx="45" cy="45" r="38" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="6"/>
+          <circle id="score-arc" cx="45" cy="45" r="38" fill="none" stroke="var(--pink)" stroke-width="6"
+            stroke-linecap="round" stroke-dasharray="239" stroke-dashoffset="239" style="transition:stroke-dashoffset 1.2s ease;"/>
+        </svg>
+        <div class="score-ring-num" id="score-num">—</div>
+      </div>
+      <div class="score-details">
+        <div class="score-label">Overall score</div>
+        <div class="score-verdict" id="score-verdict">Loading…</div>
+        <div class="score-note" id="score-note"></div>
+      </div>
+    </div>
+
+    <div class="fb-section">
+      <div class="fb-section-title green">✔ What you did well</div>
+      <div id="fb-strengths"></div>
+    </div>
+    <div class="fb-section">
+      <div class="fb-section-title yellow">⚠ Areas to improve</div>
+      <div id="fb-improve"></div>
+    </div>
+    <div class="fb-section">
+      <div class="fb-section-title blue">💡 Key things to remember</div>
+      <div id="fb-tips"></div>
+    </div>
+
+    <div class="fb-actions">
+      <button class="fb-btn" onclick="goSetup()">Try another case</button>
+      <button class="fb-btn primary" onclick="location.href='index.html'">Find a training partner</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── STATE ────────────────────────────────────────────────
+let selectedCase = null;
+let selectedLevel = 'Intermediate';
+let conversation = [];
+let isRecording = false;
+let recognition = null;
+let currentUtterance = null;
+let sessionTranscript = [];
+let isSpeaking = false;
+let pendingHint = false;
+
+const CASE_TYPES = ['M&A','Profitability','Market Entry','Market Sizing','Operations','Pricing','Growth Strategy'];
+
+// ── SETUP ────────────────────────────────────────────────
+function selectCase(el) {
+  document.querySelectorAll('.case-card').forEach(c => c.classList.remove('selected'));
+  el.classList.add('selected');
+  selectedCase = el.dataset.type;
+  document.getElementById('start-btn').disabled = false;
+}
+
+function selectLevel(el) {
+  document.querySelectorAll('.diff-btn').forEach(b => b.classList.remove('selected'));
+  el.classList.add('selected');
+  selectedLevel = el.dataset.level;
+}
+
+// ── START ────────────────────────────────────────────────
+async function startInterview() {
+  const caseType = selectedCase === 'Random'
+    ? CASE_TYPES[Math.floor(Math.random() * CASE_TYPES.length)]
+    : selectedCase;
+
+  document.getElementById('info-case').textContent = caseType;
+  document.getElementById('info-level').textContent = selectedLevel;
+  document.getElementById('session-info').style.opacity = '1';
+
+  document.getElementById('setup').style.display = 'none';
+  const iv = document.getElementById('interview');
+  iv.style.display = 'flex';
+
+  setStatus('thinking', 'Preparing your case…');
+  setOrb('thinking');
+
+  // Build system prompt
+  const systemPrompt = `You are a top-tier consulting interviewer at McKinsey conducting a ${caseType} case interview. The candidate's level is ${selectedLevel}.
+
+Your role:
+- Run a rigorous, realistic consulting case interview
+- Start by reading the case setup aloud (as text), then guide the candidate through the case
+- Ask one question at a time — never give multiple questions at once
+- React naturally to their answers: probe deeper, push back, give data when requested
+- Adapt difficulty to ${selectedLevel} level
+- Never give away answers — coach through questioning, not telling
+- Keep responses concise (2–4 sentences max per turn) — this is a spoken conversation
+- If the candidate asks for data, provide relevant numbers that fit the case
+- After ~20 minutes or when the candidate reaches a recommendation, close the case
+
+Case type: ${caseType}
+Difficulty: ${selectedLevel}
+
+Start by introducing yourself briefly (1 sentence), then read the case prompt. Keep it natural and conversational — this will be spoken aloud.`;
+
+  conversation = [{ role: 'user', content: `Start the ${caseType} case interview at ${selectedLevel} level. Begin with your introduction and case setup.` }];
+
+  const opening = await callClaude(systemPrompt, conversation);
+  conversation.push({ role: 'assistant', content: opening });
+  sessionTranscript.push({ role: 'AI', text: opening });
+
+  addMessage('ai', opening);
+  speak(opening, () => {
+    setStatus('active', 'Your turn — tap the mic to respond');
+    setOrb('idle');
+  });
+}
+
+// ── CLAUDE API ────────────────────────────────────────────
+async function callClaude(system, messages) {
+  try {
+    const res = await fetch('https://reugkvdvfhqpxvbmxlox.supabase.co/functions/v1/quick-endpoint', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer sb_publishable_KBssRnU1sUVtR86VZEafdQ_-CBRiL_T',
+        'apikey': 'sb_publishable_KBssRnU1sUVtR86VZEafdQ_-CBRiL_T'
+      },
+      body: JSON.stringify({
+        mode: 'ai_chat',
+        system,
+        messages,
+        max_tokens: 400
+      })
+    });
+    const data = await res.json();
+    return data.text || 'I apologise, could you repeat that?';
+  } catch (e) {
+    return 'I apologise, there was a technical issue. Please continue.';
+  }
+}
+
+// ── SPEECH SYNTHESIS ─────────────────────────────────────
+function speak(text, onEnd) {
+  window.speechSynthesis.cancel();
+  isSpeaking = true;
+  setOrb('speaking');
+  setStatus('speaking', 'AI is speaking…');
+  document.getElementById('status-dot').className = 'speaking';
+
+  const clean = text.replace(/[*_`#]/g, '').replace(/\n/g, ' ');
+  const utt = new SpeechSynthesisUtterance(clean);
+
+  // Pick a good voice
+  const voices = window.speechSynthesis.getVoices();
+  const preferred = voices.find(v =>
+    v.name.includes('Daniel') || v.name.includes('Karen') ||
+    v.name.includes('Samantha') || v.name.includes('Google UK') ||
+    (v.lang === 'en-GB' && !v.name.includes('Google'))
+  ) || voices.find(v => v.lang.startsWith('en')) || voices[0];
+  if (preferred) utt.voice = preferred;
+
+  utt.rate = 0.92;
+  utt.pitch = 1.0;
+  utt.volume = 1;
+
+  utt.onend = () => {
+    isSpeaking = false;
+    setOrb('idle');
+    if (onEnd) onEnd();
+  };
+  utt.onerror = () => {
+    isSpeaking = false;
+    setOrb('idle');
+    if (onEnd) onEnd();
+  };
+
+  currentUtterance = utt;
+  window.speechSynthesis.speak(utt);
+}
+
+// ── SPEECH RECOGNITION ───────────────────────────────────
+function toggleMic() {
+  if (isSpeaking) {
+    window.speechSynthesis.cancel();
+    isSpeaking = false;
+  }
+  if (isRecording) {
+    stopRecording();
+  } else {
+    startRecording();
+  }
+}
+
+function startRecording() {
+  if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+    alert('Speech recognition not supported in this browser. Please use Chrome or Edge.');
+    return;
+  }
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  recognition = new SR();
+  recognition.continuous = true;
+  recognition.interimResults = true;
+  recognition.lang = 'en-US';
+
+  let finalTranscript = '';
+
+  recognition.onstart = () => {
+    isRecording = true;
+    setOrb('listening');
+    setStatus('active', 'Listening… tap again to send');
+    document.getElementById('mic-btn').classList.add('recording');
+    document.getElementById('mic-btn').textContent = '⏹';
+    document.getElementById('mic-label').textContent = 'Tap to send';
+    document.getElementById('status-dot').className = 'active';
+  };
+
+  recognition.onresult = (e) => {
+    finalTranscript = '';
+    for (let i = e.resultIndex; i < e.results.length; i++) {
+      if (e.results[i].isFinal) finalTranscript += e.results[i][0].transcript;
+    }
+    if (finalTranscript) {
+      document.getElementById('status-text').textContent = '"' + finalTranscript.slice(0, 60) + (finalTranscript.length > 60 ? '…' : '') + '"';
+    }
+  };
+
+  recognition.onerror = () => stopRecording();
+
+  recognition.onend = () => {
+    if (isRecording) {
+      // Auto-restart if still in recording mode
+    }
+    if (finalTranscript.trim()) {
+      handleUserInput(finalTranscript.trim());
+    }
+    isRecording = false;
+    document.getElementById('mic-btn').classList.remove('recording');
+    document.getElementById('mic-btn').textContent = '🎤';
+    document.getElementById('mic-label').textContent = 'Tap to speak';
+  };
+
+  recognition.start();
+}
+
+function stopRecording() {
+  isRecording = false;
+  recognition?.stop();
+}
+
+// ── HANDLE USER INPUT ─────────────────────────────────────
+async function handleUserInput(text) {
+  addMessage('user', text);
+  sessionTranscript.push({ role: 'You', text });
+  conversation.push({ role: 'user', content: text });
+
+  setOrb('thinking');
+  setStatus('thinking', 'Thinking…');
+  document.getElementById('status-dot').className = '';
+
+  const system = `You are a top-tier consulting interviewer conducting a case interview. 
+Level: ${selectedLevel}. Keep responses concise (2–4 sentences) — spoken conversation.
+React naturally to the candidate's answer. Ask follow-up questions, probe deeper, or provide data if requested.
+Never lecture. One question or prompt per response maximum.`;
+
+  const response = await callClaude(system, conversation);
+  conversation.push({ role: 'assistant', content: response });
+  sessionTranscript.push({ role: 'AI', text: response });
+
+  addMessage('ai', response);
+  speak(response, () => {
+    setStatus('active', 'Your turn — tap the mic to respond');
+    setOrb('idle');
+  });
+}
+
+// ── HINT ─────────────────────────────────────────────────
+async function requestHint() {
+  if (isSpeaking) window.speechSynthesis.cancel();
+  setOrb('thinking');
+  setStatus('thinking', 'Getting hint…');
+
+  const system = `You are the interviewer. The candidate asked for a hint. 
+Give a subtle nudge — point them in the right direction without giving the answer.
+1–2 sentences max. Be encouraging but don't solve it for them.`;
+
+  const hintConv = [...conversation, { role: 'user', content: '[The candidate asked for a hint]' }];
+  const hint = await callClaude(system, hintConv);
+
+  addMessage('ai', '💡 ' + hint);
+  speak(hint, () => {
+    setStatus('active', 'Your turn — tap the mic to respond');
+    setOrb('idle');
+  });
+}
+
+// ── END & FEEDBACK ────────────────────────────────────────
+async function endInterview() {
+  window.speechSynthesis.cancel();
+  recognition?.stop();
+
+  document.getElementById('interview').style.display = 'none';
+  document.getElementById('feedback').style.display = 'flex';
+
+  // Generate feedback
+  const feedbackPrompt = `Based on this consulting case interview transcript, provide structured feedback.
+
+Transcript:
+${sessionTranscript.map(t => `${t.role}: ${t.text}`).join('\n\n')}
+
+Respond ONLY with a valid JSON object (no markdown, no backticks):
+{
+  "score": <number 0-100>,
+  "verdict": "<one sentence overall assessment>",
+  "note": "<one sentence on what made the difference>",
+  "strengths": ["<strength 1>", "<strength 2>", "<strength 3>"],
+  "improvements": ["<improvement 1>", "<improvement 2>", "<improvement 3>"],
+  "tips": ["<tip 1>", "<tip 2>", "<tip 3>"]
+}`;
+
+  try {
+    const res = await fetch('https://reugkvdvfhqpxvbmxlox.supabase.co/functions/v1/quick-endpoint', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer sb_publishable_KBssRnU1sUVtR86VZEafdQ_-CBRiL_T',
+        'apikey': 'sb_publishable_KBssRnU1sUVtR86VZEafdQ_-CBRiL_T'
+      },
+      body: JSON.stringify({
+        mode: 'ai_chat',
+        messages: [{ role: 'user', content: feedbackPrompt }],
+        max_tokens: 800
+      })
+    });
+    const data = await res.json();
+    const text = data.text || '{}';
+    const fb = JSON.parse(text.replace(/```json|```/g, '').trim());
+    renderFeedback(fb);
+  } catch (e) {
+    renderFeedback({
+      score: 70,
+      verdict: 'Good effort — keep practising.',
+      note: 'Structure is key in consulting interviews.',
+      strengths: ['You engaged with the case', 'You asked questions', 'You showed interest'],
+      improvements: ['Structure your answer before diving in', 'Quantify your assumptions', 'Be more concise'],
+      tips: ['Always recap your framework before answering', 'State your hypothesis upfront', 'Use the MECE principle']
+    });
+  }
+}
+
+function renderFeedback(fb) {
+  document.getElementById('score-num').textContent = fb.score;
+  document.getElementById('score-verdict').textContent = fb.verdict;
+  document.getElementById('score-note').textContent = fb.note;
+
+  // Animate score ring
+  const circ = 2 * Math.PI * 38;
+  const offset = circ - (fb.score / 100) * circ;
+  setTimeout(() => {
+    document.getElementById('score-arc').style.strokeDashoffset = offset;
+    const col = fb.score >= 75 ? '#4ADE80' : fb.score >= 50 ? '#FCD34D' : '#FF1F5F';
+    document.getElementById('score-arc').style.stroke = col;
+    document.getElementById('score-num').style.color = col;
+  }, 300);
+
+  // Strengths
+  const sEl = document.getElementById('fb-strengths');
+  sEl.innerHTML = (fb.strengths||[]).map(s => `<div class="fb-item green">${s}</div>`).join('');
+
+  // Improvements
+  const iEl = document.getElementById('fb-improve');
+  iEl.innerHTML = (fb.improvements||[]).map(s => `<div class="fb-item yellow">${s}</div>`).join('');
+
+  // Tips
+  const tEl = document.getElementById('fb-tips');
+  tEl.innerHTML = (fb.tips||[]).map(s => `<div class="fb-item blue">${s}</div>`).join('');
+
+  document.getElementById('fb-sub').textContent =
+    `${selectedLevel} · ${selectedCase} · ${Math.round(sessionTranscript.length / 2)} exchanges`;
+}
+
+// ── UI HELPERS ────────────────────────────────────────────
+function addMessage(role, text) {
+  const wrap = document.getElementById('transcript-inner');
+  const div = document.createElement('div');
+  div.className = role === 'ai' ? 'msg-ai' : 'msg-user';
+  div.innerHTML = `<div class="msg-label">${role === 'ai' ? 'AI Interviewer' : 'You'}</div>
+    <div class="msg-text">${text}</div>`;
+  wrap.appendChild(div);
+  wrap.scrollTop = wrap.scrollHeight;
+}
+
+function setOrb(state) {
+  const orb = document.getElementById('orb');
+  orb.className = '';
+  if (state !== 'idle') orb.classList.add(state);
+}
+
+function setStatus(type, text) {
+  document.getElementById('status-text').textContent = text;
+  const dot = document.getElementById('status-dot');
+  dot.className = type === 'active' ? 'active' : type === 'speaking' ? 'speaking' : '';
+}
+
+function goSetup() {
+  document.getElementById('feedback').style.display = 'none';
+  document.getElementById('setup').style.display = 'flex';
+  document.getElementById('session-info').style.opacity = '0';
+  conversation = [];
+  sessionTranscript = [];
+  selectedCase = null;
+  document.querySelectorAll('.case-card').forEach(c => c.classList.remove('selected'));
+  document.getElementById('start-btn').disabled = true;
+  document.getElementById('transcript-inner').innerHTML = '';
+  document.getElementById('score-arc').style.strokeDashoffset = '239';
+}
+
+// Pre-load voices
+window.speechSynthesis.onvoiceschanged = () => window.speechSynthesis.getVoices();
+</script>
+</body>
+</html>
