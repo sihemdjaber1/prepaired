@@ -1265,16 +1265,16 @@ async function autoMatch(newProfile){
 function isCompatible(a,b){
   // 1. Same level exact
   if(a.level!==b.level)return false;
-  // 2. At least 1 shared language
-  if(!a.langs.filter(l=>b.langs.includes(l)).length)return false;
-  // 3. Same type (handle 'both' as wildcard)
+  // 2. At least 1 shared language (empty = wildcard for old profiles)
+  const aL=a.langs||[],bL=b.langs||[];
+  if(aL.length&&bL.length&&!aL.filter(l=>bL.includes(l)).length)return false;
+  // 3. Same type — empty array = wildcard (old profiles had no types)
   const aT=a.types||[],bT=b.types||[];
-  const typeOk=aT.includes('both')||bT.includes('both')||aT.some(t=>bT.includes(t));
+  const typeOk=!aT.length||!bT.length||aT.includes('both')||bT.includes('both')||aT.some(t=>bT.includes(t));
   if(!typeOk)return false;
-  // 4. Same format (only if both doing business case)
-  const needsFormat=(aT.includes('business_case')||aT.includes('both'))&&(bT.includes('business_case')||bT.includes('both'));
-  if(needsFormat){
-    const aF=a.formats||[],bF=b.formats||[];
+  // 4. Same format — only check if both have formats set
+  const aF=a.formats||[],bF=b.formats||[];
+  if(aF.length&&bF.length){
     const fmtOk=aF.includes('both_formats')||bF.includes('both_formats')||aF.some(f=>bF.includes(f));
     if(!fmtOk)return false;
   }
