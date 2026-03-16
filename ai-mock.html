@@ -78,9 +78,9 @@ body::before{
 }
 .case-card:hover{border-color:var(--border-pink);background:var(--surface2);}
 .case-card.selected{border-color:var(--pink);background:rgba(255,31,95,0.06);}
-.case-card .cc-icon{font-size:1.3rem;margin-bottom:0.5rem;}
-.case-card .cc-name{font-size:0.82rem;font-weight:600;color:var(--w);margin-bottom:0.2rem;}
-.case-card .cc-desc{font-size:0.68rem;color:var(--g);line-height:1.5;}
+.case-card .cc-icon{font-size:1.3rem;margin-bottom:0.5rem;pointer-events:none;}
+.case-card .cc-name{font-size:0.82rem;font-weight:600;color:var(--w);margin-bottom:0.2rem;pointer-events:none;}
+.case-card .cc-desc{font-size:0.68rem;color:var(--g);line-height:1.5;pointer-events:none;}
 
 .difficulty-row{display:flex;gap:0.5rem;margin-bottom:1.8rem;}
 .diff-btn{
@@ -444,9 +444,11 @@ const CASE_TYPES = ['M&A','Profitability','Market Entry','Market Sizing','Operat
 
 // ── SETUP ────────────────────────────────────────────────
 function selectCase(el) {
+  // Traverse up to find the .case-card button in case a child element was clicked
+  const card = el.closest('.case-card') || el;
   document.querySelectorAll('.case-card').forEach(c => c.classList.remove('selected'));
-  el.classList.add('selected');
-  selectedCase = el.dataset.type;
+  card.classList.add('selected');
+  selectedCase = card.dataset.type;
   document.getElementById('start-btn').disabled = false;
 }
 
