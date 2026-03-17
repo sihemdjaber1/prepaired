@@ -1312,19 +1312,12 @@ async function sendMatchEmails(pa, pb, meetLink, reason, score){
 
   let displayA,displayB,sharedLabel;
   if(shared.length>0){
-    // Use the UTC timestamp to display correct local time for each person
+    // Use formatSlotForTZ which finds the real next occurrence of the day
     const match=shared[0];
-    const utcMs=match.utc;
-    const utcDate=new Date(utcMs);
-    // Display in each person's timezone using the real UTC moment
-    const optTime={hour:'2-digit',minute:'2-digit',timeZone:'UTC'};
-    const timeA=new Date(utcMs).toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit',timeZone:tzA});
-    const dateA=new Date(utcMs).toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'long',timeZone:tzA});
-    const timeB=new Date(utcMs).toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit',timeZone:tzB});
-    const dateB=new Date(utcMs).toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'long',timeZone:tzB});
-    displayA={timeStr:timeA,dateStr:dateA};
-    displayB={timeStr:timeB,dateStr:dateB};
-    sharedLabel=true; // we have shared slots — personalized per email below
+    // For new date format: display exact date. For old Day-HH: find next occurrence.
+    displayA=formatSlotForTZ(match.slotA,tzA);
+    displayB=formatSlotForTZ(match.slotB,tzB);
+    sharedLabel=true;
   } else {
     const fallback={timeStr:'a convenient time',dateStr:'a mutually available day'};
     displayA=fallback; displayB=fallback; sharedLabel='TBD';
